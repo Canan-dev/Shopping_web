@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Owner Portal | ElectroHub Administration</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Admin Portal Specific Styles */
+    .admin-page-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #090d16;
+    }
+
+    .admin-login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 85vh;
+      padding: 2rem;
+    }
+
+    .admin-login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 2.75rem 2.25rem;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.15);
+      text-align: center;
+    }
+
+    .admin-login-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #60a5fa;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+
+    .admin-login-card h2 {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .admin-login-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .passcode-hint {
+      margin-top: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      background: var(--bg-card);
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--border-color);
+    }
+
+    .admin-header-nav {
+      background: rgba(15, 22, 38, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .admin-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-header-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .admin-header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .admin-main-container {
+      max-width: 1320px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="admin-page-wrap">
+
+  <!-- ==========================================
+       VIEW 1: OWNER PASSWORD LOGIN SCREEN
+       ========================================== -->
+  <div id="loginSection" class="admin-login-screen">
+    <div class="admin-login-card">
+      <div class="admin-login-icon">
+        <i data-lucide="lock" style="width:30px; height:30px;"></i>
+      </div>
+      <h2>Store Owner Portal</h2>
+      <p>Only the store owner can access product listings, inventory controls, and incoming orders.</p>
+
+      <form id="loginForm" onsubmit="handleOwnerLogin(event)">
+        <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+          <label style="font-size: 0.85rem; font-weight: 600;">Owner Passcode / Password</label>
+          <input type="password" id="ownerPasswordInput" required placeholder="Enter owner passcode" autofocus style="padding: 0.8rem; font-size: 1rem;">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+          <i data-lucide="shield-check"></i> Unlock Dashboard
+        </button>
+      </form>
+
+      <div class="passcode-hint">
+        💡 Default password: <strong>admin123</strong>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="/" style="font-size: 0.85rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="arrow-left" style="width:14px; height:14px;"></i> Return to Public Storefront
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VIEW 2: AUTHENTICATED OWNER DASHBOARD
+       ========================================== -->
+  <div id="dashboardSection" style="display: none; flex-direction: column; flex: 1;">
+    
+    <!-- Admin Top Navbar -->
+    <header class="admin-header-nav">
+      <div class="container admin-header-inner">
+        <div class="admin-header-left">
+          <div class="brand-logo">
+            <div class="logo-icon">
+              <i data-lucide="zap"></i>
+            </div>
+            <div class="logo-text">
+              <span>Electro<strong>Hub</strong></span>
+              <small>Owner Control Center</small>
+            </div>
+          </div>
+          <span class="owner-pill-btn" style="cursor: default;">
+            <i data-lucide="shield-check"></i> Owner Authenticated
+          </span>
+        </div>
+
+        <div class="admin-header-right">
+          <a href="/" target="_blank" class="action-btn" title="Open storefront in new tab">
+            <i data-lucide="external-link"></i>
+            <span class="btn-text">View Public Shop</span>
+          </a>
+          <button class="action-btn" onclick="handleOwnerLogout()" title="Log Out" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);">
+            <i data-lucide="log-out"></i>
+            <span class="btn-text">Log Out</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main-container">
+      
+      <!-- Admin Navigation Tabs -->
+      <div class="admin-nav-tabs">
+        <button class="admin-tab active" data-tab="add-product" onclick="switchAdminTab('add-product')">
+          <i data-lucide="plus-circle"></i> Add New Item
+        </button>
+        <button class="admin-tab" data-tab="manage-inventory" onclick="switchAdminTab('manage-inventory')">
+          <i data-lucide="boxes"></i> Manage Inventory (<span id="adminProductCount">0</span>)
+        </button>
+        <button class="admin-tab" data-tab="customer-orders" onclick="switchAdminTab('customer-orders')">
+          <i data-lucide="clipboard-list"></i> Customer Orders (<span id="adminOrdersCount">0</span>)
+        </button>
+        <button class="admin-tab" data-tab="analytics" onclick="switchAdminTab('analytics')">
+          <i data-lucide="bar-chart-3"></i> Sales Analytics
+        </button>
+      </div>
+
+      <!-- TAB 1: ADD NEW PRODUCT -->
+      <div class="admin-tab-content active" id="tab-add-product">
+        <div class="add-product-grid">
+          
+          <!-- Form Section -->
+          <form id="addProductForm" onsubmit="handleAddProductSubmit(event)" class="admin-form">
+            <h3 class="form-title"><i data-lucide="package-plus"></i> List a New Item for People to Buy</h3>
+            
+            <div class="form-group">
+              <label>Product Title / Name *</label>
+              <input type="text" id="newProdName" required placeholder="e.g. Sony WH-1000XM5 ANC Headphones" oninput="updateLivePreview()">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="newProdCategory" required onchange="updateLivePreview()">
+                  <option value="Smartphones">Smartphones</option>
+                  <option value="Laptops">Laptops</option>
+                  <option value="Audio">Audio & Sound</option>
+                  <option value="Wearables">Wearables</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Accessories">Accessories</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Badge Tag</label>
+                <input type="text" id="newProdBadge" placeholder="e.g. New Arrival, Best Seller" value="New Arrival" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sale Price (UGX) *</label>
+                <input type="number" id="newProdPrice" step="1" min="1" required placeholder="150000" oninput="updateLivePreview()">
+              </div>
+
+              <div class="form-group">
+                <label>Original Price (Optional strikethrough - UGX)</label>
+                <input type="number" id="newProdOrigPrice" step="1" min="1" placeholder="180000" oninput="updateLivePreview()">
+              </div>
+
+              <div class="form-group">
+                <label>Stock Inventory *</label>
+                <input type="number" id="newProdStock" min="1" required placeholder="15" value="10" oninput="updateLivePreview()">
+              </div>
+            </div>
+
+            <!-- Image Selection -->
+            <div class="form-group image-selection-group">
+              <label>Product Image *</label>
+              <div class="image-source-tabs">
+                <label><input type="radio" name="imageSource" value="url" checked onchange="toggleImageInputSource()"> Web Image URL</label>
+                <label><input type="radio" name="imageSource" value="upload" onchange="toggleImageInputSource()"> Upload Photo from Computer</label>
+                <label><input type="radio" name="imageSource" value="preset" onchange="toggleImageInputSource()"> Pick from Tech Presets</label>
+              </div>
+
+              <!-- Source 1: URL input -->
+              <div id="imageUrlInputWrapper" class="image-sub-input">
+                <input type="url" id="newProdImageUrl" placeholder="https://images.unsplash.com/photo-..." oninput="updateLivePreview()">
+              </div>
+
+              <!-- Source 2: File Upload input -->
+              <div id="imageUploadWrapper" class="image-sub-input" style="display:none;">
+                <input type="file" id="newProdImageFile" accept="image/*" onchange="handleImageFileSelect(event)">
+                <small class="help-text">Select an image from your computer (PNG, JPG, WebP - max 5MB)</small>
+              </div>
+
+              <!-- Source 3: Preset thumbnails -->
+              <div id="imagePresetWrapper" class="image-presets-grid" style="display:none;">
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=150&q=80" alt="Phone">
+                  <span>Phone</span>
+                </button>
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=150&q=80" alt="Laptop">
+                  <span>Laptop</span>
+                </button>
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=150&q=80" alt="Audio">
+                  <span>Audio</span>
+                </button>
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80" alt="Watch">
+                  <span>Watch</span>
+                </button>
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=150&q=80" alt="Console">
+                  <span>Gaming</span>
+                </button>
+                <button type="button" class="preset-btn" onclick="selectPresetImage('https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80')">
+                  <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=150&q=80" alt="Keyboard">
+                  <span>Keyboard</span>
+                </button>
+              </div>
+
+              <!-- Selected Image Thumbnail & Status (Always visible on mobile & desktop) -->
+              <div id="inlineImagePreview" style="display: flex; align-items: center; gap: 0.85rem; margin-top: 0.85rem; padding: 0.65rem 0.85rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <img id="inlinePreviewThumb" src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80" alt="Selected Preview" style="width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80'">
+                <div style="font-size: 0.82rem; overflow: hidden; flex: 1;">
+                  <strong style="color: var(--accent-cyan); display: flex; align-items: center; gap: 0.35rem;">
+                    <i data-lucide="image" style="width: 14px; height: 14px;"></i> Active Image Loaded
+                  </strong>
+                  <span id="inlinePreviewSource" style="color: var(--text-dim); display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 280px;">Default gadget image</span>
+                </div>
+              </div>
+
+              <!-- Local computer path warning helper -->
+              <div id="localPathWarning" style="display: none; margin-top: 0.65rem; font-size: 0.82rem; line-height: 1.4; color: #fbbf24; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm);">
+                ⚠️ <strong>Local file path detected!</strong> Browsers block local file paths (like <code>C:\...</code>) from loading as web images. Click the <strong>"Upload Photo from Computer"</strong> option above to upload your photo directly to the server.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Short Description *</label>
+              <textarea id="newProdDesc" rows="3" required placeholder="Describe highlights, features, what makes this item great..." oninput="updateLivePreview()"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Key Specifications (One bullet per line)</label>
+              <textarea id="newProdSpecs" rows="3" placeholder="e.g.&#10;A18 Bionic Processor&#10;512GB SSD Storage&#10;30-hour battery life"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg" id="publishProductBtn">
+                <i data-lucide="check-circle"></i> Add Item to Store
+              </button>
+              <button type="reset" class="btn btn-outline" onclick="resetLivePreview()">Clear Form</button>
+            </div>
+          </form>
+
+          <!-- Live Preview Side -->
+          <div class="preview-column">
+            <h4>Live Customer Card Preview</h4>
+            <p class="preview-hint">This is exactly how buyers will see your item in the public store:</p>
+            
+            <div class="preview-card-wrapper" id="previewCardWrapper">
+              <!-- Rendered preview card -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: MANAGE INVENTORY -->
+      <div class="admin-tab-content" id="tab-manage-inventory">
+        <div class="inventory-top-row">
+          <div class="inventory-search">
+            <i data-lucide="search"></i>
+            <input type="text" id="inventorySearchInput" placeholder="Search inventory..." oninput="filterInventoryTable()">
+          </div>
+          <button class="btn btn-primary" onclick="switchAdminTab('add-product')">
+            <i data-lucide="plus"></i> Add New Item
+          </button>
+        </div>
+
+        <div class="inventory-table-responsive">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: CUSTOMER ORDERS -->
+      <div class="admin-tab-content" id="tab-customer-orders">
+        <div class="orders-header-row">
+          <h3>Customer Purchases & Delivery Queue</h3>
+          <button class="btn btn-sm btn-outline" onclick="loadAdminOrders()">
+            <i data-lucide="refresh-cw"></i> Refresh Orders
+          </button>
+        </div>
+
+        <div class="orders-list" id="adminOrdersList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- TAB 4: STORE ANALYTICS -->
+      <div class="admin-tab-content" id="tab-analytics">
+        <div class="analytics-metrics-grid" id="analyticsMetrics">
+          <!-- Loaded dynamically -->
+        </div>
+
+        <div class="analytics-charts-row">
+          <div class="analytics-panel">
+            <h4>Products by Category</h4>
+            <div id="categoryBreakdownChart" class="category-breakdown-list"></div>
+          </div>
+          <div class="analytics-panel">
+            <h4>Store Health & Inventory Status</h4>
+            <div id="storeHealthMetrics" class="health-metrics-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Edit Product Modal -->
+  <div class="modal-overlay" id="editProductModal">
+    <div class="modal-card edit-card">
+      <button class="modal-close-btn" onclick="closeEditModal()"><i data-lucide="x"></i></button>
+      <div class="edit-header">
+        <i data-lucide="edit-3"></i>
+        <h3>Edit Product Details</h3>
+      </div>
+      <form id="editProductForm" onsubmit="handleEditProductSubmit(event)">
+        <input type="hidden" id="editProdId">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="editProdName" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="editProdCategory" required>
+              <option value="Smartphones">Smartphones</option>
+              <option value="Laptops">Laptops</option>
+              <option value="Audio">Audio</option>
+              <option value="Wearables">Wearables</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price (UGX)</label>
+            <input type="number" step="1" min="1" id="editProdPrice" required>
+          </div>
+          <div class="form-group">
+            <label>Stock Count</label>
+            <input type="number" min="0" id="editProdStock" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="url" id="editProdImage" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="editProdDesc" rows="3" required></textarea>
+        </div>
+        <div class="form-actions edit-modal-actions">
+          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Changes</button>
+          <button type="button" class="btn btn-danger-outline" onclick="handleEditModalDelete()"><i data-lucide="trash-2"></i> Delete Product</button>
+          <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

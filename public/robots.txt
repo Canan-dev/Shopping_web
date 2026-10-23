@@ -1,0 +1,10 @@
+# ElectroHub robots.txt - Controls search engine crawlers (Googlebot, Bingbot, etc.)
+User-agent: *
+Allow: /
+Allow: /uploads/
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/admin/
+
+# Change "https://your-domain.com" to your real live website domain once deployed
+Sitemap: https://your-domain.com/sitemap.xml

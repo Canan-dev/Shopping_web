@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ORD-89412",
+    "customer": {
+      "name": "Sarah Connor",
+      "email": "sarah.c@example.com",
+      "phone": "+1 (555) 019-2834",
+      "address": "742 Evergreen Terrace, Tech City, CA 90210"
+    },
+    "items": [
+      {
+        "productId": "prod_3",
+        "name": "Sony WH-1000XM5 ANC Headphones",
+        "price": 349,
+        "quantity": 1,
+        "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
+      }
+    ],
+    "subtotal": 349,
+    "discount": 0,
+    "shipping": 0,
+    "total": 349,
+    "paymentMethod": "Credit / Debit Card",
+    "status": "Processing",
+    "createdAt": "2026-10-22T14:30:00.000Z",
+    "updatedAt": "2026-10-23T00:37:49.640Z"
+  }
+]

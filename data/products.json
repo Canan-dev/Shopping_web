@@ -1,0 +1,179 @@
+[
+  {
+    "id": "prod_1792689202715",
+    "name": "Head sets",
+    "category": "Audio",
+    "price": 4009,
+    "originalPrice": 2008,
+    "stock": 10,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
+    "description": "Its a good one",
+    "specs": [
+      "fs"
+    ],
+    "createdAt": "2026-10-22T17:13:22.715Z"
+  },
+  {
+    "id": "prod_1",
+    "name": "Apple iPhone 16 Pro Max",
+    "category": "Smartphones",
+    "price": 1199,
+    "originalPrice": 1299,
+    "stock": 14,
+    "rating": 4.9,
+    "reviewCount": 128,
+    "badge": "Best Seller",
+    "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80",
+    "description": "Titanium design with larger 6.9-inch Super Retina XDR display, Camera Control, 4K 120 fps Dolby Vision, and the breakthrough A18 Pro chip.",
+    "specs": [
+      "A18 Pro Chip with 6-core GPU",
+      "48MP Fusion Camera & 5x Telephoto",
+      "6.9\" Super Retina XDR OLED Display",
+      "Grade 5 Titanium Construction"
+    ],
+    "createdAt": "2026-10-15T10:00:00.000Z"
+  },
+  {
+    "id": "prod_2",
+    "name": "MacBook Pro 16\" M3 Max",
+    "category": "Laptops",
+    "price": 2499,
+    "originalPrice": 2699,
+    "stock": 8,
+    "rating": 5,
+    "reviewCount": 94,
+    "badge": "Pro Pick",
+    "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+    "description": "Extreme performance with Apple M3 Max chip, Liquid Retina XDR display, up to 22 hours of battery life, and pro studio connectivity.",
+    "specs": [
+      "14-core CPU, 30-core GPU",
+      "36GB Unified Memory, 1TB SSD",
+      "16.2\" Liquid Retina XDR (120Hz ProMotion)",
+      "MagSafe 3, HDMI, SDXC, 3x Thunderbolt 4"
+    ],
+    "createdAt": "2026-10-16T11:30:00.000Z"
+  },
+  {
+    "id": "prod_3",
+    "name": "Sony WH-1000XM5 ANC Headphones",
+    "category": "Audio",
+    "price": 349,
+    "originalPrice": 399,
+    "stock": 22,
+    "rating": 4.8,
+    "reviewCount": 310,
+    "badge": "Top Rated",
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
+    "description": "Industry-leading noise cancellation with two processors and eight microphones for unprecedented sound purity and crystal-clear calling.",
+    "specs": [
+      "Auto NC Optimizer technology",
+      "Up to 30-hour battery life with quick charge",
+      "High-Resolution Audio Wireless (LDAC)",
+      "Ultra-comfortable lightweight leather fit"
+    ],
+    "createdAt": "2026-10-17T09:15:00.000Z"
+  },
+  {
+    "id": "prod_4",
+    "name": "Apple Watch Ultra 2",
+    "category": "Wearables",
+    "price": 799,
+    "originalPrice": 849,
+    "stock": 11,
+    "rating": 4.9,
+    "reviewCount": 85,
+    "badge": "Rugged",
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
+    "description": "The ultimate sports and adventure watch featuring 3000-nit display, precision dual-frequency GPS, customizable Action Button, and 72-hour battery in Low Power Mode.",
+    "specs": [
+      "49mm aerospace-grade titanium case",
+      "100m water resistance, EN13319 dive rated",
+      "S9 SiP with Double Tap gesture",
+      "Cellular connectivity built-in"
+    ],
+    "createdAt": "2026-10-18T14:20:00.000Z"
+  },
+  {
+    "id": "prod_5",
+    "name": "Samsung Galaxy S24 Ultra",
+    "category": "Smartphones",
+    "price": 1299,
+    "originalPrice": 1399,
+    "stock": 17,
+    "rating": 4.8,
+    "reviewCount": 142,
+    "badge": "AI Powered",
+    "image": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=800&q=80",
+    "description": "Unleash Galaxy AI with Circle to Search, Live Translate, Note Assist, 200MP camera resolution, and integrated S Pen.",
+    "specs": [
+      "Snapdragon 8 Gen 3 for Galaxy",
+      "200MP Quad Telephoto Camera System",
+      "6.8\" Dynamic AMOLED 2X flat display",
+      "Built-in S Pen stylus & Titanium frame"
+    ],
+    "createdAt": "2026-10-19T08:45:00.000Z"
+  },
+  {
+    "id": "prod_6",
+    "name": "Keychron Q1 Pro Custom Keyboard",
+    "category": "Accessories",
+    "price": 199,
+    "originalPrice": 220,
+    "stock": 25,
+    "rating": 4.7,
+    "reviewCount": 63,
+    "badge": "Popular",
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80",
+    "description": "Full aluminum CNC body, 75% QMK/VIA wireless custom mechanical keyboard with hot-swappable switches and south-facing RGB.",
+    "specs": [
+      "Bluetooth 5.1 & Type-C wired connectivity",
+      "Double-gasket mount design for typing comfort",
+      "Screw-in PCB stabilizers",
+      "Compatible with Mac, Windows & Linux"
+    ],
+    "createdAt": "2026-10-20T12:00:00.000Z"
+  },
+  {
+    "id": "prod_7",
+    "name": "Sony PlayStation 5 Slim Console",
+    "category": "Gaming",
+    "price": 499,
+    "originalPrice": 549,
+    "stock": 9,
+    "rating": 4.9,
+    "reviewCount": 220,
+    "badge": "Hot Deal",
+    "image": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
+    "description": "Experience lightning-fast loading with an ultra-high speed SSD, deeper immersion with haptic feedback, adaptive triggers, and 3D Audio.",
+    "specs": [
+      "Custom AMD Zen 2 CPU & RDNA 2 GPU",
+      "1TB ultra-fast internal NVMe SSD",
+      "Up to 120fps with 4K output & Ray Tracing",
+      "Includes DualSense wireless controller"
+    ],
+    "createdAt": "2026-10-21T16:10:00.000Z"
+  },
+  {
+    "id": "prod_8",
+    "name": "Anker Prime 20,000mAh Power Bank",
+    "category": "Accessories",
+    "price": 129,
+    "originalPrice": 149,
+    "stock": 35,
+    "rating": 4.8,
+    "reviewCount": 77,
+    "badge": "Must Have",
+    "image": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=800&q=80",
+    "description": "200W total output capable of fast charging two laptops simultaneously. Includes smart digital display showing battery health and wattage.",
+    "specs": [
+      "2x USB-C + 1x USB-A ports (200W max)",
+      "Smart dynamic real-time digital display",
+      "ActiveShield 2.0 temperature protection",
+      "Compact carry-on airline approved size"
+    ],
+    "createdAt": "2026-10-22T09:00:00.000Z"
+  }
+]
