@@ -6,5 +6,5 @@ Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/admin/
 
-# Change "https://your-domain.com" to your real live website domain once deployed
-Sitemap: https://your-domain.com/sitemap.xml
+# Sitemap location
+Sitemap: https://shopping-web-lake.vercel.app/sitemap.xml
