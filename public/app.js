@@ -16,6 +16,7 @@ const state = {
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
   initIcons();
+  initTrendingSlider();
   loadProducts();
   updateCartUI();
   setupClickOutsideModals();
@@ -859,4 +860,99 @@ function setupClickOutsideModals() {
       }
     });
   });
+}
+
+// ==========================================
+// TRENDING DEALS MOVING SHOWCASE SLIDER
+// ==========================================
+const trendingSliderState = {
+  currentIndex: 0,
+  totalSlides: 4,
+  duration: 4500, // 4.5 seconds per slide
+  timer: null,
+  isPaused: false
+};
+
+function initTrendingSlider() {
+  const slides = document.querySelectorAll('.trending-slide');
+  if (!slides || slides.length === 0) return;
+  trendingSliderState.totalSlides = slides.length;
+  trendingSliderState.currentIndex = 0;
+  startTrendingAutoAdvance();
+}
+
+function startTrendingAutoAdvance() {
+  clearTrendingTimers();
+  if (trendingSliderState.isPaused) return;
+
+  const fill = document.getElementById('trendingProgressFill');
+  if (fill) {
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    void fill.offsetWidth; // Force DOM reflow
+    fill.style.transition = `width ${trendingSliderState.duration}ms linear`;
+    fill.style.width = '100%';
+  }
+
+  trendingSliderState.timer = setTimeout(() => {
+    nextTrendingSlide();
+  }, trendingSliderState.duration);
+}
+
+function clearTrendingTimers() {
+  if (trendingSliderState.timer) {
+    clearTimeout(trendingSliderState.timer);
+    trendingSliderState.timer = null;
+  }
+}
+
+function pauseTrendingSlider() {
+  trendingSliderState.isPaused = true;
+  clearTrendingTimers();
+  const fill = document.getElementById('trendingProgressFill');
+  if (fill) {
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+  }
+}
+
+function resumeTrendingSlider() {
+  trendingSliderState.isPaused = false;
+  startTrendingAutoAdvance();
+}
+
+function goToTrendingSlide(index) {
+  const slides = document.querySelectorAll('.trending-slide');
+  const dots = document.querySelectorAll('#trendingDots .dot');
+  if (!slides || slides.length === 0) return;
+
+  trendingSliderState.currentIndex = (index + slides.length) % slides.length;
+
+  slides.forEach((slide, idx) => {
+    if (idx === trendingSliderState.currentIndex) {
+      slide.classList.add('active');
+    } else {
+      slide.classList.remove('active');
+    }
+  });
+
+  dots.forEach((dot, idx) => {
+    if (idx === trendingSliderState.currentIndex) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+
+  startTrendingAutoAdvance();
+}
+
+function nextTrendingSlide(e) {
+  if (e) e.stopPropagation();
+  goToTrendingSlide(trendingSliderState.currentIndex + 1);
+}
+
+function prevTrendingSlide(e) {
+  if (e) e.stopPropagation();
+  goToTrendingSlide(trendingSliderState.currentIndex - 1);
 }
