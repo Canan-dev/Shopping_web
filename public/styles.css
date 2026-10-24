@@ -356,6 +356,46 @@ button, input, select, textarea {
   padding: 3.5rem 0 2.5rem;
   background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 60%);
   border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+/* ── Search-active mode: hide hero & category toolbar ── */
+body.search-active .hero-section,
+body.search-active .announcement-bar,
+body.search-active .catalog-toolbar {
+  display: none;
+}
+
+body.search-active .catalog-section {
+  padding-top: 1rem;
+}
+
+/* Search results header shown only during active search */
+.search-results-header {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.search-results-header strong {
+  color: var(--text-main);
+}
+
+.search-results-header .search-query-tag {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+  padding: 0.2rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+body.search-active .search-results-header {
+  display: flex;
 }
 
 .hero-grid {
@@ -675,16 +715,31 @@ button, input, select, textarea {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  min-height: 180px;
   overflow: hidden;
-  background: #0f172a;
+  background: #0b0f19;
+  display: block;
 }
 
+/* Blurred background layer — same image, blurred & darkened to fill the card */
+.card-img-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) brightness(0.55) saturate(1.3);
+  transform: scale(1.15); /* prevents blur edges from showing */
+  z-index: 0;
+}
+
+/* Sharp foreground image — fully visible, centered, not cropped */
 .card-img-wrap img {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   display: block;
+  z-index: 1;
   transition: transform 0.4s ease;
 }
 
@@ -705,16 +760,18 @@ button, input, select, textarea {
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
   text-transform: uppercase;
+  z-index: 2;
 }
 
 .stock-tag {
   position: absolute;
-  top: 0.85rem;
+  bottom: 0.75rem;
   right: 0.85rem;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
+  z-index: 2;
 }
 
 .stock-tag.in-stock {
@@ -971,12 +1028,23 @@ button, input, select, textarea {
   overflow: hidden;
   border: 1px solid var(--border-color);
   aspect-ratio: 1;
+  background: #0b0f19;
+  position: relative;
+}
+
+.quickview-img-wrap .card-img-bg {
+  filter: blur(18px) brightness(0.5) saturate(1.3);
+  transform: scale(1.2);
 }
 
 .quickview-img-wrap img {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  z-index: 1;
 }
 
 .quickview-info h2 {
@@ -1801,12 +1869,14 @@ button, input, select, textarea {
 }
 
 .table-prod-thumb {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+  object-position: center;
   border: 1px solid var(--border-color);
   flex-shrink: 0;
+  background: #0b0f19;
 }
 
 .table-prod-meta {

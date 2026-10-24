@@ -8,11 +8,11 @@
   <meta name="google-site-verification" content="eVjWu79IoScUZpeQrDUAXKkVW2F39PLnHWdmnOy8Rp8" />
 
   <!-- Primary SEO Meta Tags for Google Search -->
-  <title>ElectroHub | Official Store - Premium Electronics & Tech Gadgets</title>
-  <meta name="title" content="ElectroHub | Official Store - Premium Electronics & Tech Gadgets">
-  <meta name="description" content="Shop at ElectroHub for cutting-edge electronics, pro laptops, flagship smartphones, studio headphones, and high-performance gaming gear with fast delivery and warranty.">
-  <meta name="keywords" content="ElectroHub, Electro Hub, electronics store, buy laptops online, smartphones, tech accessories, gaming gear, ElectroHub official">
-  <meta name="author" content="ElectroHub">
+  <title>Net Tech | Official Store - Premium Electronics & Tech Gadgets</title>
+  <meta name="title" content="Net Tech | Official Store - Premium Electronics & Tech Gadgets">
+  <meta name="description" content="Shop at Net Tech for cutting-edge electronics, pro laptops, flagship smartphones, studio headphones, and high-performance gaming gear with fast delivery and warranty.">
+  <meta name="keywords" content="Net Tech, NetTech, Net Tech store, Net Tech electronics, buy laptops online, smartphones, tech accessories, gaming gear, Net Tech official">
+  <meta name="author" content="Net Tech">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://shopping-web-lake.vercel.app/">
 
@@ -23,17 +23,17 @@
 
   <!-- Open Graph / Facebook Meta Tags -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="ElectroHub">
+  <meta property="og:site_name" content="Net Tech">
   <meta property="og:url" content="https://shopping-web-lake.vercel.app/">
-  <meta property="og:title" content="ElectroHub | Official Store - Premium Electronics & Tech Gadgets">
-  <meta property="og:description" content="Discover curated flagship smartphones, pro laptops, studio noise-canceling audio, and gaming hardware at ElectroHub.">
+  <meta property="og:title" content="Net Tech | Official Store - Premium Electronics & Tech Gadgets">
+  <meta property="og:description" content="Discover curated flagship smartphones, pro laptops, studio noise-canceling audio, and gaming hardware at Net Tech.">
   <meta property="og:image" content="https://shopping-web-lake.vercel.app/favicon.svg">
 
   <!-- Twitter Meta Tags -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:url" content="https://shopping-web-lake.vercel.app/">
-  <meta name="twitter:title" content="ElectroHub | Official Store - Premium Electronics & Tech Gadgets">
-  <meta name="twitter:description" content="Discover curated flagship smartphones, pro laptops, studio noise-canceling audio, and gaming hardware at ElectroHub.">
+  <meta name="twitter:title" content="Net Tech | Official Store - Premium Electronics & Tech Gadgets">
+  <meta name="twitter:description" content="Discover curated flagship smartphones, pro laptops, studio noise-canceling audio, and gaming hardware at Net Tech.">
   <meta name="twitter:image" content="https://shopping-web-lake.vercel.app/favicon.svg">
 
   <!-- Schema.org JSON-LD (Tells Google Search your exact Brand Name and Store details) -->
@@ -45,8 +45,8 @@
         "@type": "WebSite",
         "@id": "https://shopping-web-lake.vercel.app/#website",
         "url": "https://shopping-web-lake.vercel.app/",
-        "name": "ElectroHub",
-        "alternateName": ["Electro Hub", "ElectroHub Store", "ElectroHub Electronics"],
+        "name": "Net Tech",
+        "alternateName": ["NetTech", "Net Tech Store", "Net Tech Electronics", "Net Tech Shopping"],
         "description": "Premium Electronics & Tech Gadgets Online Store",
         "potentialAction": {
           "@type": "SearchAction",
@@ -57,7 +57,7 @@
       {
         "@type": "OnlineStore",
         "@id": "https://shopping-web-lake.vercel.app/#store",
-        "name": "ElectroHub",
+        "name": "Net Tech",
         "url": "https://shopping-web-lake.vercel.app/",
         "logo": "https://shopping-web-lake.vercel.app/favicon.svg",
         "description": "Authorized retailer for flagship smartphones, pro laptops, studio headphones, and gaming gear.",
@@ -301,6 +301,16 @@
         </button>
       </div>
 
+      <!-- Search Results Header (shown only when search is active) -->
+      <div class="search-results-header" id="searchResultsHeader">
+        <i data-lucide="search" style="width:18px;height:18px;color:#60a5fa;"></i>
+        <span>Results for <span class="search-query-tag" id="searchQueryTag"></span></span>
+        <span id="searchResultCount" style="color:var(--text-dim); font-size:0.85rem;"></span>
+        <button onclick="clearSearch()" style="margin-left:auto; background:none; border:none; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:0.3rem; font-size:0.85rem; padding:0.3rem 0.6rem; border-radius:var(--radius-full); border:1px solid var(--border-color);">
+          <i data-lucide="x" style="width:14px;height:14px;"></i> Clear search
+        </button>
+      </div>
+
       <!-- Product Cards Grid -->
       <div class="product-grid" id="productGrid">
         <!-- Rendered by app.js -->
@@ -344,22 +354,12 @@
       </div>
 
       <div class="cart-footer" id="cartFooter">
-        <!-- Promo Code Row -->
-        <div class="promo-box">
-          <input type="text" id="promoInput" placeholder="Promo code (Try: TECH10)">
-          <button class="btn btn-sm btn-outline" onclick="applyPromoCode()">Apply</button>
-        </div>
-        <div id="promoMessage" class="promo-feedback"></div>
 
         <!-- Pricing Summary -->
         <div class="pricing-summary">
           <div class="summary-line">
             <span>Subtotal</span>
-            <span id="cartSubtotal">$0.00</span>
-          </div>
-          <div class="summary-line discount-line" id="discountRow" style="display:none;">
-            <span>Discount (TECH10 - 10%)</span>
-            <span id="cartDiscount" class="text-green">-$0.00</span>
+            <span id="cartSubtotal">UGX 0</span>
           </div>
           <div class="summary-line">
             <span>Shipping</span>
@@ -368,7 +368,7 @@
           <div class="summary-divider"></div>
           <div class="summary-line total-line">
             <span>Total</span>
-            <span id="cartTotal">$0.00</span>
+            <span id="cartTotal">UGX 0</span>
           </div>
         </div>
 
@@ -436,7 +436,7 @@
             
             <div class="payment-options">
               <label class="payment-card selected">
-                <input type="radio" name="paymentMethod" value="Credit / Debit Card" checked>
+                <input type="radio" name="paymentMethod" value="Credit / Debit Card" checked onchange="handlePaymentMethodChange(this.value)">
                 <div class="pay-info">
                   <strong>Credit / Debit Card</strong>
                   <span>Instant secure processing</span>
@@ -445,7 +445,16 @@
               </label>
 
               <label class="payment-card">
-                <input type="radio" name="paymentMethod" value="Cash on Delivery">
+                <input type="radio" name="paymentMethod" value="Mobile Money - MTN (+256 776 439184)" onchange="handlePaymentMethodChange(this.value)">
+                <div class="pay-info">
+                  <strong>Mobile Money (MTN)</strong>
+                  <span>Send payment to: <strong>+256 776 439184</strong></span>
+                </div>
+                <i data-lucide="smartphone"></i>
+              </label>
+
+              <label class="payment-card">
+                <input type="radio" name="paymentMethod" value="Cash on Delivery" onchange="handlePaymentMethodChange(this.value)">
                 <div class="pay-info">
                   <strong>Cash on Delivery (COD)</strong>
                   <span>Pay upon physical delivery</span>
@@ -454,13 +463,29 @@
               </label>
 
               <label class="payment-card">
-                <input type="radio" name="paymentMethod" value="Mobile Pay / Apple Pay">
+                <input type="radio" name="paymentMethod" value="Mobile Pay / Apple Pay" onchange="handlePaymentMethodChange(this.value)">
                 <div class="pay-info">
                   <strong>Apple Pay / Mobile Pay</strong>
                   <span>One-tap payment</span>
                 </div>
                 <i data-lucide="smartphone"></i>
               </label>
+            </div>
+
+            <!-- MTN Mobile Money Instructions (shown when MTN is selected) -->
+            <div id="mtnMoneyInstructions" style="display:none; margin-top: 1rem; padding: 1rem 1.1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); font-size: 0.88rem;">
+              <strong style="color: #10b981; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem;">
+                📱 MTN Mobile Money Payment Instructions
+              </strong>
+              <ol style="padding-left: 1.2rem; line-height: 2; color: var(--text-muted);">
+                <li>Dial <strong style="color:#fff;">*165#</strong> on your MTN line</li>
+                <li>Select <strong style="color:#fff;">Send Money</strong></li>
+                <li>Enter number: <strong style="color:#38bdf8;">+256 776 439184</strong></li>
+                <li>Enter the <strong style="color:#fff;">exact order total</strong> as the amount</li>
+                <li>Use your order ID as the <strong style="color:#fff;">reference/reason</strong></li>
+                <li>Confirm with your PIN</li>
+              </ol>
+              <p style="margin-top: 0.5rem; color: var(--text-dim); font-size: 0.8rem;">⚠️ Your order will be confirmed after payment is verified. Please save your transaction receipt.</p>
             </div>
 
             <div class="order-summary-box">
@@ -548,15 +573,15 @@
             <i data-lucide="mail"></i>
             <div>
               <strong>Need Assistance?</strong>
-              <a href="mailto:support@electrohub.com">support@electrohub.com</a>
+              <a href="mailto:Sereakakram@gmail.com">Sereakakram@gmail.com</a>
             </div>
           </div>
 
           <div class="helpful-item">
-            <i data-lucide="tag"></i>
+            <i data-lucide="smartphone"></i>
             <div>
-              <strong>Promo Discount</strong>
-              <span>Use code <code class="footer-code">TECH10</code> for 10% off</span>
+              <strong>Pay via MTN Mobile Money</strong>
+              <span>Send to: <strong>+256 776 439184</strong></span>
             </div>
           </div>
         </div>

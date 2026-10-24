@@ -276,8 +276,8 @@ function updateLivePreview() {
   previewWrap.innerHTML = `
     <div class="product-card">
       <div class="card-img-wrap">
+        <div class="card-img-bg" style="background-image: url('${escapeHtml(image)}')"></div>
         <img src="${escapeHtml(image)}" alt="Preview" onerror="this.src='https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80'">
-        ${badge ? `<span class="card-badge">${escapeHtml(badge)}</span>` : ''}
         <span class="stock-tag in-stock">In Stock (${stock})</span>
       </div>
       <div class="card-body">
@@ -344,6 +344,7 @@ async function handleAddProductSubmit(e) {
     const data = await res.json();
 
     if (data.success) {
+      notifyCatalogUpdated();
       showToast(`🎉 "${payload.name}" is now live in the store!`, 'success');
       document.getElementById('addProductForm').reset();
       adminState.uploadedImageUrl = null;
@@ -472,6 +473,7 @@ async function quickAdjustStock(prodId, delta) {
     const data = await res.json();
 
     if (data.success) {
+      notifyCatalogUpdated();
       prod.stock = newStock;
       loadInventoryTable();
       showToast(`Stock updated for ${prod.name}`, 'info');
@@ -531,6 +533,7 @@ async function handleEditProductSubmit(e) {
     const data = await res.json();
 
     if (data.success) {
+      notifyCatalogUpdated();
       showToast('Product updated successfully!', 'success');
       closeEditModal();
       loadInventoryTable();
@@ -554,6 +557,7 @@ async function deleteProduct(prodId, prodName) {
     const data = await res.json();
 
     if (data.success) {
+      notifyCatalogUpdated();
       showToast(`Deleted "${prodName}" from catalog.`, 'info');
       loadInventoryTable();
       refreshAdminData();
@@ -812,4 +816,19 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// Broadcast catalog update across all open tabs / windows instantly
+function notifyCatalogUpdated() {
+  try {
+    localStorage.setItem('electrohub_catalog_sync', Date.now().toString());
+  } catch (e) {}
+
+  try {
+    if (window.BroadcastChannel) {
+      const bc = new BroadcastChannel('electrohub_sync_channel');
+      bc.postMessage({ type: 'catalog_updated', timestamp: Date.now() });
+      setTimeout(() => bc.close(), 100);
+    }
+  } catch (e) {}
 }

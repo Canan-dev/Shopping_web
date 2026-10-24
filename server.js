@@ -11,6 +11,24 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const adminTokens = new Set();
 
+// ==========================================
+// SERVER-SENT EVENTS (SSE) — Real-time push
+// ==========================================
+const sseClients = new Set();
+let catalogVersion = Date.now();
+
+function broadcastProductChange(eventType, data) {
+  catalogVersion = Date.now();
+  const payload = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
+  sseClients.forEach(client => {
+    try {
+      client.write(payload);
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  });
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -29,6 +47,35 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 
+// SSE endpoint — storefront connects here for real-time updates
+app.get('/api/events', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+  res.write(`event: connected\ndata: {"version":${catalogVersion}}\n\n`);
+  sseClients.add(res);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch (err) {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    }
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
+
 // Route shortcut for owner admin page
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -45,14 +92,18 @@ const storage = multer.diskStorage({
     cb(null, `${cleanName}_${Date.now()}${ext}`);
   }
 });
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype) && ALLOWED_IMAGE_EXTS.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      cb(new Error('Invalid file type. Only JPG, PNG, WebP, and GIF images are allowed.'), false);
     }
   }
 });
@@ -126,8 +177,21 @@ app.get('/api/admin/verify', requireAdmin, (req, res) => {
 // PRODUCTS API
 // ==========================================
 
+// GET /api/products/version - Fast endpoint to check if catalog was updated
+app.get('/api/products/version', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  const products = readJSON(productsFile);
+  res.json({
+    success: true,
+    version: catalogVersion,
+    count: products.length,
+    latestId: products.length > 0 ? products[0].id : null
+  });
+});
+
 // GET /api/products - PUBLIC: Anyone can browse products
 app.get('/api/products', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   let products = readJSON(productsFile);
   const { category, search, sort } = req.query;
 
@@ -195,6 +259,8 @@ app.post('/api/products', requireAdmin, (req, res) => {
   products.unshift(newProduct);
   writeJSON(productsFile, products);
 
+  broadcastProductChange('product-added', newProduct);
+
   res.status(201).json({ success: true, message: 'Product added successfully!', product: newProduct });
 });
 
@@ -227,6 +293,7 @@ app.put('/api/products/:id', requireAdmin, (req, res) => {
   };
 
   writeJSON(productsFile, products);
+  broadcastProductChange('product-updated', products[index]);
   res.json({ success: true, message: 'Product updated successfully!', product: products[index] });
 });
 
@@ -240,16 +307,22 @@ app.delete('/api/products/:id', requireAdmin, (req, res) => {
   }
 
   writeJSON(productsFile, filtered);
+  broadcastProductChange('product-deleted', { id: req.params.id });
   res.json({ success: true, message: 'Product deleted successfully!' });
 });
 
 // POST /api/upload - PROTECTED: Owner only
-app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded or invalid file format' });
-  }
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({ success: true, url: fileUrl });
+app.post('/api/upload', requireAdmin, (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message || 'Upload failed' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded. Please select a valid image (JPG, PNG, WebP, or GIF).' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: fileUrl });
+  });
 });
 
 // ==========================================

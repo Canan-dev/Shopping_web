@@ -20,7 +20,100 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartUI();
   setupClickOutsideModals();
   checkOwnerStatus();
+  setupLiveProductSync();
 });
+
+// ==========================================
+// REAL-TIME PRODUCT UPDATES & CROSS-TAB SYNC
+// ==========================================
+let lastKnownVersion = null;
+let isPollingActive = false;
+
+function setupLiveProductSync() {
+  // 1. Instant cross-tab sync (admin and storefront on same browser - 0ms delay)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'electrohub_catalog_sync') {
+      loadProducts(true);
+    }
+  });
+
+  if (window.BroadcastChannel) {
+    try {
+      const bc = new BroadcastChannel('electrohub_sync_channel');
+      bc.onmessage = () => {
+        loadProducts(true);
+      };
+    } catch (e) {}
+  }
+
+  // 2. Tab focus & visibility (sync immediately when switching to this tab)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      loadProducts(true);
+    }
+  });
+  window.addEventListener('focus', () => {
+    loadProducts(true);
+  });
+
+  // 3. Server-Sent Events (SSE) for instant server push
+  connectLiveUpdates();
+
+  // 4. Background smart poll every 2.5 seconds (foolproof for all browsers/devices)
+  if (!isPollingActive) {
+    isPollingActive = true;
+    setInterval(checkCatalogVersionPoll, 2500);
+  }
+}
+
+async function checkCatalogVersionPoll() {
+  try {
+    const res = await fetch(`/api/products/version?_t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        if (lastKnownVersion === null) {
+          lastKnownVersion = data.version;
+          return;
+        }
+        if (data.version !== lastKnownVersion) {
+          lastKnownVersion = data.version;
+          loadProducts(true);
+        }
+      }
+    } else {
+      // Fallback: poll catalog directly if version endpoint unavailable
+      loadProducts(true);
+    }
+  } catch (err) {
+    // Ignore network interruptions silently during polling
+  }
+}
+
+function connectLiveUpdates() {
+  if (!window.EventSource) return; // browser doesn't support SSE
+
+  try {
+    const source = new EventSource('/api/events');
+
+    source.addEventListener('product-added', () => {
+      loadProducts(true);
+    });
+
+    source.addEventListener('product-updated', () => {
+      loadProducts(true);
+    });
+
+    source.addEventListener('product-deleted', () => {
+      loadProducts(true);
+    });
+
+    source.onerror = () => {
+      source.close();
+      setTimeout(connectLiveUpdates, 4000);
+    };
+  } catch (e) {}
+}
 
 function checkOwnerStatus() {
   const token = localStorage.getItem('electrohub_admin_token');
@@ -49,7 +142,7 @@ function initIcons() {
 // PRODUCTS CATALOG & FILTERING
 // ==========================================
 
-async function loadProducts() {
+async function loadProducts(isSilent = false) {
   const grid = document.getElementById('productGrid');
   const empty = document.getElementById('emptyState');
   
@@ -65,7 +158,9 @@ async function loadProducts() {
       params.append('sort', state.currentSort);
     }
 
-    const res = await fetch(`/api/products?${params.toString()}`);
+    const res = await fetch(`/api/products?${params.toString()}&_t=${Date.now()}`, {
+      cache: 'no-store'
+    });
     const data = await res.json();
 
     if (data.success) {
@@ -75,7 +170,9 @@ async function loadProducts() {
     }
   } catch (err) {
     console.error('Failed to load products:', err);
-    showToast('Failed to connect to server. Ensure server is running.', 'error');
+    if (!isSilent) {
+      showToast('Failed to connect to server. Ensure server is running.', 'error');
+    }
   }
 }
 
@@ -86,9 +183,17 @@ function renderProductGrid(products) {
   if (!products || products.length === 0) {
     grid.innerHTML = '';
     empty.style.display = 'block';
+    state.lastRenderedSignature = 'empty';
     initIcons();
     return;
   }
+
+  // Prevent unnecessary DOM flicker if items haven't changed
+  const currentSignature = products.map(p => `${p.id}_${p.price}_${p.stock}_${p.name}_${p.image}`).join('|');
+  if (state.lastRenderedSignature === currentSignature) {
+    return;
+  }
+  state.lastRenderedSignature = currentSignature;
 
   empty.style.display = 'none';
 
@@ -108,8 +213,8 @@ function renderProductGrid(products) {
     return `
       <div class="product-card" data-id="${prod.id}">
         <div class="card-img-wrap">
+          <div class="card-img-bg" style="background-image: url('${escapeHtml(prod.image)}')"></div>
           <img src="${escapeHtml(prod.image)}" alt="${escapeHtml(prod.name)}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=800&q=80'">
-          ${prod.badge ? `<span class="card-badge">${escapeHtml(prod.badge)}</span>` : ''}
           <span class="stock-tag ${stockClass}">${stockText}</span>
         </div>
 
@@ -231,16 +336,40 @@ function handleSearch() {
   state.searchQuery = val;
   clearBtn.style.display = val ? 'flex' : 'none';
 
+  if (val) {
+    // Enter search mode — hide hero, announcement bar, category toolbar
+    document.body.classList.add('search-active');
+
+    // Reset category so search covers everything
+    state.currentCategory = 'All';
+    document.querySelectorAll('.category-pills .pill').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.category === 'All');
+    });
+    const labelEl = document.getElementById('selectedCategoryText');
+    if (labelEl) labelEl.textContent = 'All Gadgets';
+    document.querySelectorAll('.custom-option').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.category === 'All');
+    });
+
+    // Show the search query tag
+    const tag = document.getElementById('searchQueryTag');
+    if (tag) tag.textContent = val;
+  } else {
+    // Exit search mode — restore everything
+    document.body.classList.remove('search-active');
+  }
+
   clearTimeout(window.searchTimer);
   window.searchTimer = setTimeout(() => {
     loadProducts();
-  }, 250);
+  }, 200);
 }
 
 function clearSearch() {
   document.getElementById('searchInput').value = '';
   document.getElementById('clearSearchBtn').style.display = 'none';
   state.searchQuery = '';
+  document.body.classList.remove('search-active');
   loadProducts();
 }
 
@@ -250,6 +379,7 @@ function resetFilters() {
 
   document.getElementById('searchInput').value = '';
   document.getElementById('clearSearchBtn').style.display = 'none';
+  document.body.classList.remove('search-active');
 
   document.querySelectorAll('.category-pills .pill').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.category === 'All');
@@ -270,18 +400,21 @@ function resetFilters() {
 function updateFilterStatusLabel(count) {
   const lbl = document.getElementById('productCountLabel');
   const rst = document.getElementById('resetFilterBtn');
+  const countEl = document.getElementById('searchResultCount');
+
+  // Update search result count in the search header
+  if (countEl) {
+    countEl.textContent = `— ${count} result${count === 1 ? '' : 's'} found`;
+  }
 
   let text = `Showing ${count} product${count === 1 ? '' : 's'}`;
   if (state.currentCategory !== 'All') {
     text += ` in <strong>${escapeHtml(state.currentCategory)}</strong>`;
   }
-  if (state.searchQuery) {
-    text += ` matching "${escapeHtml(state.searchQuery)}"`;
-  }
 
   lbl.innerHTML = text;
 
-  const isFiltered = state.currentCategory !== 'All' || Boolean(state.searchQuery);
+  const isFiltered = state.currentCategory !== 'All';
   rst.style.display = isFiltered ? 'inline-flex' : 'none';
 }
 
@@ -299,6 +432,7 @@ function openQuickView(prodId) {
   content.innerHTML = `
     <div class="quickview-grid">
       <div class="quickview-img-wrap">
+        <div class="card-img-bg" style="background-image: url('${escapeHtml(prod.image)}')"></div>
         <img src="${escapeHtml(prod.image)}" alt="${escapeHtml(prod.name)}">
       </div>
       <div class="quickview-info">
@@ -429,8 +563,6 @@ function updateCartUI() {
   const cartBadge = document.getElementById('cartCount');
   const cartDrawerCount = document.getElementById('cartDrawerCount');
   const subtotalEl = document.getElementById('cartSubtotal');
-  const discountRow = document.getElementById('discountRow');
-  const discountEl = document.getElementById('cartDiscount');
   const shippingEl = document.getElementById('cartShipping');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('checkoutBtn');
@@ -449,7 +581,6 @@ function updateCartUI() {
     `;
     subtotalEl.textContent = 'UGX 0';
     totalEl.textContent = 'UGX 0';
-    discountRow.style.display = 'none';
     shippingEl.textContent = 'FREE';
     checkoutBtn.disabled = true;
     initIcons();
@@ -480,44 +611,13 @@ function updateCartUI() {
   `).join('');
 
   const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  let discount = 0;
-
-  if (state.promoCode === 'TECH10') {
-    discount = Math.round(subtotal * 0.10);
-    discountRow.style.display = 'flex';
-    discountEl.textContent = `-UGX ${formatPrice(discount)}`;
-  } else {
-    discountRow.style.display = 'none';
-  }
-
   const shipping = subtotal > 100000 ? 0 : 5000;
+
   shippingEl.textContent = shipping === 0 ? 'FREE' : `UGX ${formatPrice(shipping)}`;
-
-  const total = Math.max(0, subtotal - discount + shipping);
-
   subtotalEl.textContent = `UGX ${formatPrice(subtotal)}`;
-  totalEl.textContent = `UGX ${formatPrice(total)}`;
+  totalEl.textContent = `UGX ${formatPrice(subtotal + shipping)}`;
 
   initIcons();
-}
-
-function applyPromoCode() {
-  const code = document.getElementById('promoInput').value.trim().toUpperCase();
-  const feedback = document.getElementById('promoMessage');
-
-  if (code === 'TECH10') {
-    state.promoCode = 'TECH10';
-    feedback.style.color = 'var(--success)';
-    feedback.textContent = 'Promo code TECH10 applied! 10% discount included.';
-    updateCartUI();
-  } else if (!code) {
-    state.promoCode = null;
-    feedback.textContent = '';
-    updateCartUI();
-  } else {
-    feedback.style.color = 'var(--danger)';
-    feedback.textContent = 'Invalid promo code. Try: TECH10';
-  }
 }
 
 // ==========================================
@@ -639,6 +739,12 @@ function showOrderSuccessReceipt(order) {
       <span style="color:var(--text-dim);">Payment Method:</span>
       <span>${escapeHtml(order.paymentMethod)}</span>
     </div>
+    ${order.paymentMethod.includes('Mobile Money') ? `
+    <div style="margin: 0.5rem 0; padding: 0.65rem 0.85rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; font-size: 0.82rem; color: var(--text-muted);">
+      📱 Send payment to MTN number: <strong style="color:#38bdf8;">+256 776 439184</strong><br>
+      Use your order ID <strong style="color:#fff;">${escapeHtml(order.id)}</strong> as the reference.
+    </div>
+    ` : ''}
     <div class="receipt-row">
       <span style="color:var(--text-dim);">Order Status:</span>
       <span style="color: var(--success); font-weight: bold;">● ${escapeHtml(order.status)}</span>
@@ -682,6 +788,23 @@ function showOrderSuccessReceipt(order) {
 
 function closeReceiptModal() {
   document.getElementById('orderSuccessModal').classList.remove('active');
+}
+
+// ==========================================
+// PAYMENT METHOD HANDLER
+// ==========================================
+
+function handlePaymentMethodChange(value) {
+  const mtnBox = document.getElementById('mtnMoneyInstructions');
+  if (!mtnBox) return;
+  // Show MTN instructions only when MTN Mobile Money is selected
+  mtnBox.style.display = value.includes('Mobile Money') ? 'block' : 'none';
+
+  // Highlight selected payment card
+  document.querySelectorAll('.payment-card').forEach(card => {
+    const radio = card.querySelector('input[type="radio"]');
+    card.classList.toggle('selected', radio && radio.value === value);
+  });
 }
 
 // ==========================================

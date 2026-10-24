@@ -267,8 +267,8 @@
 
               <!-- Source 2: File Upload input -->
               <div id="imageUploadWrapper" class="image-sub-input" style="display:none;">
-                <input type="file" id="newProdImageFile" accept="image/*" onchange="handleImageFileSelect(event)">
-                <small class="help-text">Select an image from your computer (PNG, JPG, WebP - max 5MB)</small>
+                <input type="file" id="newProdImageFile" accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif" onchange="handleImageFileSelect(event)">
+                <small class="help-text">Select an image from your computer (JPG, PNG, WebP, GIF only - max 5MB)</small>
               </div>
 
               <!-- Source 3: Preset thumbnails -->

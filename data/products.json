@@ -1,60 +1,108 @@
 [
   {
-    "id": "prod_1792689202715",
-    "name": "Head sets",
+    "id": "prod_1792841619796",
+    "name": "JBL charge 4 speaker",
     "category": "Audio",
-    "price": 4009,
-    "originalPrice": 2008,
+    "price": 150000,
+    "originalPrice": 180000,
     "stock": 10,
     "rating": 5,
     "reviewCount": 0,
     "badge": "New Arrival",
-    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
-    "description": "Its a good one",
-    "specs": [
-      "fs"
-    ],
-    "createdAt": "2026-10-22T17:13:22.715Z"
+    "image": "/uploads/JBL_SUMMER___CHILL_removebg_preview_1792841603849.png",
+    "description": "Jbl  charge 4 speaker",
+    "specs": [],
+    "createdAt": "2026-10-24T11:33:39.796Z"
   },
   {
-    "id": "prod_1",
-    "name": "Apple iPhone 16 Pro Max",
-    "category": "Smartphones",
-    "price": 1199,
-    "originalPrice": 1299,
-    "stock": 14,
-    "rating": 4.9,
-    "reviewCount": 128,
-    "badge": "Best Seller",
-    "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80",
-    "description": "Titanium design with larger 6.9-inch Super Retina XDR display, Camera Control, 4K 120 fps Dolby Vision, and the breakthrough A18 Pro chip.",
-    "specs": [
-      "A18 Pro Chip with 6-core GPU",
-      "48MP Fusion Camera & 5x Telephoto",
-      "6.9\" Super Retina XDR OLED Display",
-      "Grade 5 Titanium Construction"
-    ],
-    "createdAt": "2026-10-15T10:00:00.000Z"
-  },
-  {
-    "id": "prod_2",
-    "name": "MacBook Pro 16\" M3 Max",
-    "category": "Laptops",
-    "price": 2499,
-    "originalPrice": 2699,
-    "stock": 8,
+    "id": "prod_1792841270637",
+    "name": "MagSafe power bank",
+    "category": "Accessories",
+    "price": 100000,
+    "originalPrice": null,
+    "stock": 10,
     "rating": 5,
-    "reviewCount": 94,
-    "badge": "Pro Pick",
-    "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    "description": "Extreme performance with Apple M3 Max chip, Liquid Retina XDR display, up to 22 hours of battery life, and pro studio connectivity.",
-    "specs": [
-      "14-core CPU, 30-core GPU",
-      "36GB Unified Memory, 1TB SSD",
-      "16.2\" Liquid Retina XDR (120Hz ProMotion)",
-      "MagSafe 3, HDMI, SDXC, 3x Thunderbolt 4"
-    ],
-    "createdAt": "2026-10-16T11:30:00.000Z"
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/1117314988813509441_removebg_preview_1792841260536.png",
+    "description": "MagSafe power bank",
+    "specs": [],
+    "createdAt": "2026-10-24T11:27:50.637Z"
+  },
+  {
+    "id": "prod_1792838144970",
+    "name": "C to C fast changer",
+    "category": "Accessories",
+    "price": 20000,
+    "originalPrice": 25000,
+    "stock": 10,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/1100989440163348044__3__removebg_preview_1792838125793.png",
+    "description": "C to C",
+    "specs": [],
+    "createdAt": "2026-10-24T10:35:44.970Z"
+  },
+  {
+    "id": "prod_1792837829912",
+    "name": "MacBook Pro\" M4",
+    "category": "Laptops",
+    "price": 4000000,
+    "originalPrice": null,
+    "stock": 10,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/Soonjet_for_MacBook_Pro_16_inch_Case_M4_2025_2024_2021_M3_M2_M1_Pro_Max__100____1__removebg_preview_1792837817717.png",
+    "description": "MacBook Pro 16\" M3 Max",
+    "specs": [],
+    "createdAt": "2026-10-24T10:30:29.912Z"
+  },
+  {
+    "id": "prod_1792833417789",
+    "name": "Samsung Galaxy S26 Ultra",
+    "category": "Smartphones",
+    "price": 2500000,
+    "originalPrice": 3000000,
+    "stock": 10,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/Samsung_Galaxy_S26_Ultra_removebg_preview_1792833315516.png",
+    "description": "Its all about the beast product",
+    "specs": [],
+    "createdAt": "2026-10-24T09:16:57.789Z"
+  },
+  {
+    "id": "prod_1792833044753",
+    "name": "IPhone 16",
+    "category": "Smartphones",
+    "price": 2000000,
+    "originalPrice": 2500000,
+    "stock": 30,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/The_iPhone_16_Series_Adds_a_Button_and_We_Can_t____removebg_preview_1792833041040.png",
+    "description": "Its the beast",
+    "specs": [],
+    "createdAt": "2026-10-24T09:10:44.753Z"
+  },
+  {
+    "id": "prod_1792766787910",
+    "name": "Sony XM6 Headphones",
+    "category": "Audio",
+    "price": 1550000,
+    "originalPrice": 1550000,
+    "stock": 27,
+    "rating": 5,
+    "reviewCount": 0,
+    "badge": "New Arrival",
+    "image": "/uploads/WH1000XM6T_1792766726003.webp",
+    "description": "The Sony WH‑1000XM6 is Sony’s newest flagship over‑ear headphones, offering their most advanced noise cancellation, studio‑quality sound, and up to 30 hours of battery life.",
+    "specs": [],
+    "createdAt": "2026-10-23T14:46:27.910Z"
   },
   {
     "id": "prod_3",
@@ -155,25 +203,5 @@
       "Includes DualSense wireless controller"
     ],
     "createdAt": "2026-10-21T16:10:00.000Z"
-  },
-  {
-    "id": "prod_8",
-    "name": "Anker Prime 20,000mAh Power Bank",
-    "category": "Accessories",
-    "price": 129,
-    "originalPrice": 149,
-    "stock": 35,
-    "rating": 4.8,
-    "reviewCount": 77,
-    "badge": "Must Have",
-    "image": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=800&q=80",
-    "description": "200W total output capable of fast charging two laptops simultaneously. Includes smart digital display showing battery health and wattage.",
-    "specs": [
-      "2x USB-C + 1x USB-A ports (200W max)",
-      "Smart dynamic real-time digital display",
-      "ActiveShield 2.0 temperature protection",
-      "Compact carry-on airline approved size"
-    ],
-    "createdAt": "2026-10-22T09:00:00.000Z"
   }
 ]
