@@ -737,6 +737,27 @@ body.search-active .search-results-header {
   text-decoration: line-through;
 }
 
+.banner-pill-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-full);
+  color: #38bdf8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.banner-pill-highlight i {
+  width: 15px;
+  height: 15px;
+  color: #38bdf8;
+}
+
 /* Glassmorphism Chevrons */
 .trending-nav-btn {
   position: absolute;

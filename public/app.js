@@ -878,6 +878,7 @@ function initTrendingSlider() {
   if (!slides || slides.length === 0) return;
   trendingSliderState.totalSlides = slides.length;
   trendingSliderState.currentIndex = 0;
+  initIcons();
   startTrendingAutoAdvance();
 }
 
