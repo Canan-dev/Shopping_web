@@ -1,4 +1,4 @@
-# ElectroHub robots.txt - Controls search engine crawlers (Googlebot, Bingbot, etc.)
+# NetShopUg robots.txt - Controls search engine crawlers (Googlebot, Bingbot, etc.)
 User-agent: *
 Allow: /
 Allow: /uploads/
@@ -7,4 +7,4 @@ Disallow: /admin.html
 Disallow: /api/admin/
 
 # Sitemap location
-Sitemap: https://shopping-web-lake.vercel.app/sitemap.xml
+Sitemap: __SITE_URL__/sitemap.xml

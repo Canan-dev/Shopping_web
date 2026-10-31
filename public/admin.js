@@ -1,5 +1,5 @@
 /**
- * ElectroHub Dedicated Owner / Admin Management Controller
+ * NetShopUg Dedicated Owner / Admin Management Controller
  * Handles authentication, item listing, inventory, and order fulfillment.
  */
 

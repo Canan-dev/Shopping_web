@@ -1,18 +1,29 @@
 {
-  "name": "electrohub-shopping-web",
+  "name": "netshopug-shopping-web",
   "version": "1.0.0",
-  "description": "Electronics & Tech Gadgets E-Commerce Store with Owner Management Dashboard",
+  "description": "NetShopUg Electronics & Tech Gadgets E-Commerce Store",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "build": "node scripts/prepare-netlify.js",
+    "netlify:dev": "npx netlify-cli dev"
   },
-  "keywords": ["ecommerce", "shopping", "tech", "gadgets", "store", "admin-panel"],
+  "keywords": [
+    "ecommerce",
+    "shopping",
+    "tech",
+    "gadgets",
+    "store",
+    "admin-panel"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@netlify/blobs": "^11.1.7",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "serverless-http": "^4.0.0"
   }
 }

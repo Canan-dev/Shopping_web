@@ -2,31 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
+const { getStore } = require('@netlify/blobs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isNetlify = process.env.NETLIFY === 'true';
 
-// Owner password (default is 'admin123')
+// Owner password (default is 'admin123' for local development)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const adminTokens = new Set();
-
-// ==========================================
-// SERVER-SENT EVENTS (SSE) — Real-time push
-// ==========================================
-const sseClients = new Set();
 let catalogVersion = Date.now();
 
-function broadcastProductChange(eventType, data) {
-  catalogVersion = Date.now();
-  const payload = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
-  sseClients.forEach(client => {
-    try {
-      client.write(payload);
-    } catch (e) {
-      sseClients.delete(client);
-    }
-  });
+if (isNetlify && !process.env.ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD must be configured in Netlify environment variables.');
 }
 
 // Middleware
@@ -37,44 +27,16 @@ app.use(express.urlencoded({ extended: true }));
 // Ensure data & upload directories exist
 const dataDir = path.join(__dirname, 'data');
 const uploadsDir = path.join(__dirname, 'uploads');
-const productsFile = path.join(dataDir, 'products.json');
-const ordersFile = path.join(dataDir, 'orders.json');
-
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!isNetlify) {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Serve static frontend and uploads
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadsDir));
-
-// SSE endpoint — storefront connects here for real-time updates
-app.get('/api/events', (req, res) => {
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*'
-  });
-  if (typeof res.flushHeaders === 'function') {
-    res.flushHeaders();
-  }
-  res.write(`event: connected\ndata: {"version":${catalogVersion}}\n\n`);
-  sseClients.add(res);
-
-  const heartbeat = setInterval(() => {
-    try {
-      res.write(': ping\n\n');
-    } catch (err) {
-      clearInterval(heartbeat);
-      sseClients.delete(res);
-    }
-  }, 15000);
-
-  req.on('close', () => {
-    clearInterval(heartbeat);
-    sseClients.delete(res);
-  });
-});
+if (!isNetlify) {
+  app.use('/uploads', express.static(uploadsDir));
+}
 
 // Route shortcut for owner admin page
 app.get('/admin', (req, res) => {
@@ -82,14 +44,20 @@ app.get('/admin', (req, res) => {
 });
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
+function makeUploadFilename(originalname) {
+  const ext = path.extname(originalname);
+  const cleanName = path.basename(originalname, ext).replace(/[^a-zA-Z0-9]/g, '_');
+  return `${cleanName}_${Date.now()}${ext}`;
+}
+
+const storage = isNetlify
+  ? multer.memoryStorage()
+  : multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const cleanName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '_');
-    cb(null, `${cleanName}_${Date.now()}${ext}`);
+    cb(null, makeUploadFilename(file.originalname));
   }
 });
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
@@ -97,7 +65,7 @@ const ALLOWED_IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: isNetlify ? 4 * 1024 * 1024 : 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (ALLOWED_IMAGE_TYPES.includes(file.mimetype) && ALLOWED_IMAGE_EXTS.includes(ext)) {
@@ -108,41 +76,85 @@ const upload = multer({
   }
 });
 
-// Helper functions for reading & writing JSON data
-function readJSON(filePath, fallback = []) {
-  try {
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2), 'utf-8');
-      return fallback;
+const dataFiles = {
+  products: path.join(dataDir, 'products.json'),
+  orders: path.join(dataDir, 'orders.json')
+};
+const seedProducts = require('./data/products.json');
+
+function dataStore() {
+  return getStore('netshopug-data');
+}
+
+async function readJSON(name, fallback = []) {
+  if (isNetlify) {
+    const store = dataStore();
+    const stored = await store.get(name, { type: 'json' });
+    if (stored !== null) {
+      return stored;
     }
-    const data = fs.readFileSync(filePath, 'utf-8');
+
+    const initialData = name === 'products' ? seedProducts : fallback;
+    await store.setJSON(name, initialData);
+    return initialData;
+  }
+
+  try {
+    const data = await fs.promises.readFile(dataFiles[name], 'utf-8');
     return JSON.parse(data || '[]');
   } catch (err) {
-    console.error(`Error reading ${filePath}:`, err);
-    return fallback;
+    if (err.code === 'ENOENT') {
+      return name === 'products' ? seedProducts : fallback;
+    }
+    throw err;
   }
 }
 
-function writeJSON(filePath, data) {
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    console.error(`Error writing ${filePath}:`, err);
-    return false;
+async function writeJSON(name, data) {
+  if (isNetlify) {
+    const store = dataStore();
+    await store.setJSON(name, data);
+    if (name === 'products') {
+      catalogVersion = Date.now();
+      await store.set('catalog-version', String(catalogVersion));
+    }
+    return;
+  }
+
+  await fs.promises.writeFile(dataFiles[name], JSON.stringify(data, null, 2), 'utf-8');
+  if (name === 'products') {
+    catalogVersion = Date.now();
   }
 }
+
+const asyncHandler = handler => (req, res, next) => {
+  Promise.resolve(handler(req, res, next)).catch(next);
+};
 
 // ==========================================
 // OWNER AUTHENTICATION MIDDLEWARE
 // ==========================================
-function requireAdmin(req, res, next) {
+async function requireAdmin(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = (authHeader && authHeader.split(' ')[1]) || req.headers['x-admin-token'];
 
-  if (token && adminTokens.has(token)) {
-    return next();
+  try {
+    let authorized = token && adminTokens.has(token);
+    if (token && isNetlify) {
+      const sessions = getStore('netshopug-admin-sessions');
+      const session = await sessions.get(token, { type: 'json' });
+      authorized = Boolean(session && Date.now() - Date.parse(session.createdAt) < 12 * 60 * 60 * 1000);
+      if (session && !authorized) {
+        await sessions.delete(token);
+      }
+    }
+    if (authorized) {
+      return next();
+    }
+  } catch (err) {
+    return next(err);
   }
+
   return res.status(401).json({
     success: false,
     message: 'Access denied: Owner authentication required.'
@@ -150,22 +162,40 @@ function requireAdmin(req, res, next) {
 }
 
 // POST /api/admin/login - Verify owner password
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res, next) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
-    const token = 'adm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-    adminTokens.add(token);
-    return res.json({ success: true, token, message: 'Owner authenticated successfully!' });
+    try {
+      const token = crypto.randomBytes(32).toString('hex');
+      if (isNetlify) {
+        await getStore('netshopug-admin-sessions').setJSON(token, { createdAt: new Date().toISOString() });
+      } else {
+        adminTokens.add(token);
+      }
+      return res.json({ success: true, token, message: 'Owner authenticated successfully!' });
+    } catch (err) {
+      return next(err);
+    }
   }
   return res.status(401).json({ success: false, message: 'Incorrect owner password. Access denied.' });
 });
 
 // POST /api/admin/logout - Invalidate owner token
-app.post('/api/admin/logout', (req, res) => {
+app.post('/api/admin/logout', async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = (authHeader && authHeader.split(' ')[1]) || req.headers['x-admin-token'];
-  if (token) adminTokens.delete(token);
-  res.json({ success: true, message: 'Logged out successfully.' });
+  try {
+    if (token) {
+      if (isNetlify) {
+        await getStore('netshopug-admin-sessions').delete(token);
+      } else {
+        adminTokens.delete(token);
+      }
+    }
+    res.json({ success: true, message: 'Logged out successfully.' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /api/admin/verify - Check if current session token is valid
@@ -178,21 +208,27 @@ app.get('/api/admin/verify', requireAdmin, (req, res) => {
 // ==========================================
 
 // GET /api/products/version - Fast endpoint to check if catalog was updated
-app.get('/api/products/version', (req, res) => {
+app.get('/api/products/version', asyncHandler(async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  const products = readJSON(productsFile);
+  const products = await readJSON('products');
+  if (isNetlify && !(await dataStore().get('catalog-version'))) {
+    await dataStore().set('catalog-version', String(catalogVersion));
+  }
+  const version = isNetlify
+    ? Number(await dataStore().get('catalog-version'))
+    : catalogVersion;
   res.json({
     success: true,
-    version: catalogVersion,
+    version,
     count: products.length,
     latestId: products.length > 0 ? products[0].id : null
   });
-});
+}));
 
 // GET /api/products - PUBLIC: Anyone can browse products
-app.get('/api/products', (req, res) => {
+app.get('/api/products', asyncHandler(async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  let products = readJSON(productsFile);
+  let products = await readJSON('products');
   const { category, search, sort } = req.query;
 
   if (category && category !== 'All') {
@@ -219,27 +255,27 @@ app.get('/api/products', (req, res) => {
   }
 
   res.json({ success: true, count: products.length, products });
-});
+}));
 
 // GET /api/products/:id - PUBLIC: Anyone can view a product
-app.get('/api/products/:id', (req, res) => {
-  const products = readJSON(productsFile);
+app.get('/api/products/:id', asyncHandler(async (req, res) => {
+  const products = await readJSON('products');
   const product = products.find(p => p.id === req.params.id);
   if (!product) {
     return res.status(404).json({ success: false, message: 'Product not found' });
   }
   res.json({ success: true, product });
-});
+}));
 
 // POST /api/products - PROTECTED: Owner only
-app.post('/api/products', requireAdmin, (req, res) => {
+app.post('/api/products', requireAdmin, asyncHandler(async (req, res) => {
   const { name, category, price, originalPrice, stock, image, description, specs, badge } = req.body;
 
   if (!name || !category || price === undefined) {
     return res.status(400).json({ success: false, message: 'Name, Category, and Price are required.' });
   }
 
-  const products = readJSON(productsFile);
+  const products = await readJSON('products');
   const newProduct = {
     id: `prod_${Date.now()}`,
     name: name.trim(),
@@ -257,16 +293,14 @@ app.post('/api/products', requireAdmin, (req, res) => {
   };
 
   products.unshift(newProduct);
-  writeJSON(productsFile, products);
-
-  broadcastProductChange('product-added', newProduct);
+  await writeJSON('products', products);
 
   res.status(201).json({ success: true, message: 'Product added successfully!', product: newProduct });
-});
+}));
 
 // PUT /api/products/:id - PROTECTED: Owner only
-app.put('/api/products/:id', requireAdmin, (req, res) => {
-  const products = readJSON(productsFile);
+app.put('/api/products/:id', requireAdmin, asyncHandler(async (req, res) => {
+  const products = await readJSON('products');
   const index = products.findIndex(p => p.id === req.params.id);
 
   if (index === -1) {
@@ -292,52 +326,82 @@ app.put('/api/products/:id', requireAdmin, (req, res) => {
     updatedAt: new Date().toISOString()
   };
 
-  writeJSON(productsFile, products);
-  broadcastProductChange('product-updated', products[index]);
+  await writeJSON('products', products);
   res.json({ success: true, message: 'Product updated successfully!', product: products[index] });
-});
+}));
 
 // DELETE /api/products/:id - PROTECTED: Owner only
-app.delete('/api/products/:id', requireAdmin, (req, res) => {
-  const products = readJSON(productsFile);
+app.delete('/api/products/:id', requireAdmin, asyncHandler(async (req, res) => {
+  const products = await readJSON('products');
   const filtered = products.filter(p => p.id !== req.params.id);
 
   if (filtered.length === products.length) {
     return res.status(404).json({ success: false, message: 'Product not found' });
   }
 
-  writeJSON(productsFile, filtered);
-  broadcastProductChange('product-deleted', { id: req.params.id });
+  await writeJSON('products', filtered);
   res.json({ success: true, message: 'Product deleted successfully!' });
-});
+}));
 
 // POST /api/upload - PROTECTED: Owner only
-app.post('/api/upload', requireAdmin, (req, res) => {
-  upload.single('image')(req, res, (err) => {
+app.post('/api/upload', requireAdmin, (req, res, next) => {
+  upload.single('image')(req, res, async err => {
     if (err) {
       return res.status(400).json({ success: false, message: err.message || 'Upload failed' });
     }
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded. Please select a valid image (JPG, PNG, WebP, or GIF).' });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ success: true, url: fileUrl });
+    try {
+      if (isNetlify) {
+        const filename = makeUploadFilename(req.file.originalname);
+        const image = new Blob([req.file.buffer], { type: req.file.mimetype });
+        await getStore('netshopug-media').set(filename, image, {
+          metadata: { contentType: req.file.mimetype }
+        });
+        return res.json({ success: true, url: `/api/media/${encodeURIComponent(filename)}` });
+      }
+
+      return res.json({ success: true, url: `/uploads/${req.file.filename}` });
+    } catch (uploadError) {
+      return next(uploadError);
+    }
   });
 });
+
+app.get('/api/media/:filename', asyncHandler(async (req, res) => {
+  if (!isNetlify) {
+    return res.status(404).json({ success: false, message: 'Image not found' });
+  }
+
+  const filename = path.basename(req.params.filename);
+  const store = getStore('netshopug-media');
+  const [image, metadata] = await Promise.all([
+    store.get(filename, { type: 'arrayBuffer' }),
+    store.getMetadata(filename)
+  ]);
+  if (!image) {
+    return res.status(404).json({ success: false, message: 'Image not found' });
+  }
+
+  res.setHeader('Content-Type', metadata?.metadata?.contentType || 'application/octet-stream');
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  res.send(Buffer.from(image));
+}));
 
 // ==========================================
 // ORDERS API
 // ==========================================
 
 // GET /api/orders - PROTECTED: Owner only
-app.get('/api/orders', requireAdmin, (req, res) => {
-  const orders = readJSON(ordersFile);
+app.get('/api/orders', requireAdmin, asyncHandler(async (req, res) => {
+  const orders = await readJSON('orders');
   orders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   res.json({ success: true, count: orders.length, orders });
-});
+}));
 
 // POST /api/orders - PUBLIC: Anyone can buy items / place an order
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', asyncHandler(async (req, res) => {
   const { customer, items, paymentMethod, promoCode } = req.body;
 
   if (!customer || !customer.name || !customer.email || !customer.address) {
@@ -348,7 +412,7 @@ app.post('/api/orders', (req, res) => {
     return res.status(400).json({ success: false, message: 'Cart is empty' });
   }
 
-  const products = readJSON(productsFile);
+  const products = await readJSON('products');
   let subtotal = 0;
   const verifiedItems = [];
 
@@ -366,6 +430,7 @@ app.post('/api/orders', (req, res) => {
     }
 
     prod.stock -= qty;
+    prod.updatedAt = new Date().toISOString();
 
     verifiedItems.push({
       productId: prod.id,
@@ -399,21 +464,21 @@ app.post('/api/orders', (req, res) => {
     createdAt: new Date().toISOString()
   };
 
-  const orders = readJSON(ordersFile);
+  const orders = await readJSON('orders');
   orders.unshift(newOrder);
 
-  writeJSON(productsFile, products);
-  writeJSON(ordersFile, orders);
+  await writeJSON('products', products);
+  await writeJSON('orders', orders);
 
   res.status(201).json({
     success: true,
     message: 'Order placed successfully!',
     order: newOrder
   });
-});
+}));
 
 // PATCH /api/orders/:id - PROTECTED: Owner only
-app.patch('/api/orders/:id', requireAdmin, (req, res) => {
+app.patch('/api/orders/:id', requireAdmin, asyncHandler(async (req, res) => {
   const { status } = req.body;
   const validStatuses = ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -424,7 +489,7 @@ app.patch('/api/orders/:id', requireAdmin, (req, res) => {
     });
   }
 
-  const orders = readJSON(ordersFile);
+  const orders = await readJSON('orders');
   const order = orders.find(o => o.id === req.params.id);
 
   if (!order) {
@@ -433,15 +498,17 @@ app.patch('/api/orders/:id', requireAdmin, (req, res) => {
 
   order.status = status;
   order.updatedAt = new Date().toISOString();
-  writeJSON(ordersFile, orders);
+  await writeJSON('orders', orders);
 
   res.json({ success: true, message: `Order status updated to ${status}`, order });
-});
+}));
 
 // GET /api/stats - PROTECTED: Owner only
-app.get('/api/stats', requireAdmin, (req, res) => {
-  const products = readJSON(productsFile);
-  const orders = readJSON(ordersFile);
+app.get('/api/stats', requireAdmin, asyncHandler(async (req, res) => {
+  const [products, orders] = await Promise.all([
+    readJSON('products'),
+    readJSON('orders')
+  ]);
 
   const totalRevenue = orders
     .filter(o => o.status !== 'Cancelled')
@@ -467,14 +534,25 @@ app.get('/api/stats', requireAdmin, (req, res) => {
       recentOrders: orders.slice(0, 5)
     }
   });
+}));
+
+app.use((err, req, res, next) => {
+  console.error('Request failed:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(500).json({ success: false, message: 'An unexpected server error occurred.' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`===============================================`);
-  console.log(` ElectroHub E-Commerce Server is LIVE!`);
-  console.log(` Storefront: http://localhost:${PORT}`);
-  console.log(` Owner Portal: http://localhost:${PORT}/admin`);
-  console.log(` Default Owner Password: ${ADMIN_PASSWORD}`);
-  console.log(`===============================================`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`===============================================`);
+    console.log(` NetShopUg E-Commerce Server is LIVE!`);
+    console.log(` Storefront: http://localhost:${PORT}`);
+    console.log(` Owner Portal: http://localhost:${PORT}/admin`);
+    console.log(` Default Owner Password: ${ADMIN_PASSWORD}`);
+    console.log(`===============================================`);
+  });
+}
+
+module.exports = app;

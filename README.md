@@ -1,4 +1,4 @@
-# ⚡ ElectroHub - Electronics & Tech Gadgets E-Commerce Web App
+# ⚡ NetShopUg - Electronics & Tech Gadgets E-Commerce Web App
 
 A full-stack shopping website tailored for tech gadgets, smartphones, laptops, audio, and accessories. Designed specifically to run and develop seamlessly in **Visual Studio Code (VS Code)**.
 
@@ -60,7 +60,22 @@ To keep your store secure and clean:
 
 ### Step 3: Open in Your Browser
 - **Customer Storefront**: [http://localhost:3000](http://localhost:3000)
-- **Owner Admin Portal**: [http://localhost:3000/admin](http://localhost:3000/admin) *(Passcode: `admin123`)*
+- **Owner Admin Portal**: [http://localhost:3000/admin](http://localhost:3000/admin) *(Local passcode: `admin123`)*
+
+---
+
+## ☁️ Deploy to Netlify
+
+This project includes a Netlify Functions adapter for the Express API. Netlify Blobs stores products, orders, admin sessions, and uploaded product images persistently; the starter product catalog and existing images are included in the deployment.
+
+1. Push the project to GitHub, then in Netlify choose **Add new site → Import an existing project** and select the repository.
+2. Keep the build settings from `netlify.toml`. The site name can be set to **NetShopUg** (the public address will be `netshopug.netlify.app` if that name is available).
+3. In **Site configuration → Environment variables**, set `ADMIN_PASSWORD` to a strong, private passcode. The local-only default `admin123` is rejected by the deployed API.
+4. Deploy the site. Netlify Blobs is initialized automatically when the API first runs.
+
+Use `npm run netlify:dev` to test the Netlify Functions and Blobs integration locally. Netlify CLI will ask you to log in and link the site. Normal local development still uses `npm start`.
+
+The public storefront and owner portal are available at `/` and `/admin`. Product catalog updates are checked every 30 seconds while the storefront is open; switching tabs or returning to the page refreshes immediately.
 
 ---
 
@@ -72,16 +87,20 @@ Shopping web/
 │   ├── launch.json       # 1-click F5 debugging configuration
 │   └── tasks.json        # VS Code task runner
 ├── data/
-│   ├── products.json     # Persistent product database
-│   └── orders.json       # Persistent customer orders database
+│   └── products.json     # Starter product catalog (seeded to Netlify Blobs)
 ├── public/
 │   ├── index.html        # Public Customer Storefront (clean, no owner controls)
 │   ├── app.js            # Customer logic (search, cart, checkout)
 │   ├── admin.html        # Protected Owner Management Portal (passcode required)
 │   ├── admin.js          # Owner logic (add products, inventory, orders, analytics)
 │   └── styles.css        # Responsive modern dark/light tech styling
-├── uploads/              # Custom uploaded product images
-├── package.json          # Node.js dependencies (express, cors, multer)
-├── server.js             # Express REST API with owner authentication
+├── uploads/              # Existing product images copied into the Netlify publish folder
+├── netlify/
+│   └── functions/api.js   # Netlify Functions adapter for the Express REST API
+├── scripts/
+│   └── prepare-netlify.js # Builds the publish folder and copies product images
+├── netlify.toml          # Netlify build, function, and route configuration
+├── package.json          # Node.js dependencies and scripts
+├── server.js             # Express REST API with Netlify Blobs persistence
 └── README.md             # Documentation
 ```

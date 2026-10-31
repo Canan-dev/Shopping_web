@@ -4,7 +4,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch ElectroHub Server (Node.js)",
+      "name": "Launch NetShopUg Server (Node.js)",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/server.js",
       "restart": true,

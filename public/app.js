@@ -1,5 +1,5 @@
 /**
- * ElectroHub Customer Storefront Application Logic
+ * NetShopUg Customer Storefront Application Logic
  * (Browse, Search, Filter, Quick-View, Cart, Checkout)
  */
 
@@ -57,13 +57,10 @@ function setupLiveProductSync() {
     loadProducts(true);
   });
 
-  // 3. Server-Sent Events (SSE) for instant server push
-  connectLiveUpdates();
-
-  // 4. Background smart poll every 2.5 seconds (foolproof for all browsers/devices)
+  // 3. Check for remote catalog changes while the store is open.
   if (!isPollingActive) {
     isPollingActive = true;
-    setInterval(checkCatalogVersionPoll, 2500);
+    setInterval(checkCatalogVersionPoll, 30000);
   }
 }
 
@@ -89,31 +86,6 @@ async function checkCatalogVersionPoll() {
   } catch (err) {
     // Ignore network interruptions silently during polling
   }
-}
-
-function connectLiveUpdates() {
-  if (!window.EventSource) return; // browser doesn't support SSE
-
-  try {
-    const source = new EventSource('/api/events');
-
-    source.addEventListener('product-added', () => {
-      loadProducts(true);
-    });
-
-    source.addEventListener('product-updated', () => {
-      loadProducts(true);
-    });
-
-    source.addEventListener('product-deleted', () => {
-      loadProducts(true);
-    });
-
-    source.onerror = () => {
-      source.close();
-      setTimeout(connectLiveUpdates, 4000);
-    };
-  } catch (e) {}
 }
 
 function checkOwnerStatus() {
@@ -760,7 +732,7 @@ function showOrderSuccessReceipt(order) {
     <div style="margin: 0.5rem 0; padding: 0.75rem 0.95rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; font-size: 0.85rem; color: var(--text-muted);">
       📱 Send payment to MTN number: <strong style="color:#38bdf8;">+256 776 439184</strong><br>
       Use your order ID <strong style="color:#fff;">${escapeHtml(order.id)}</strong> as the reference.<br>
-      <a href="https://wa.me/256776439184?text=${encodeURIComponent(`Hello ElectroHub, I have placed order ${order.id}. Here is my payment receipt/screenshot.`)}" 
+      <a href="https://wa.me/256776439184?text=${encodeURIComponent(`Hello NetShopUg, I have placed order ${order.id}. Here is my payment receipt/screenshot.`)}"
          target="_blank" 
          rel="noopener noreferrer" 
          style="display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; color: #25d366; font-weight: 600; text-decoration: none;">

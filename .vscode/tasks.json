@@ -7,7 +7,7 @@
       "isBackground": true,
       "problemMatcher": [],
       "label": "npm: start",
-      "detail": "Starts the ElectroHub Express E-Commerce Server"
+      "detail": "Starts the NetShopUg Express E-Commerce Server"
     }
   ]
 }
