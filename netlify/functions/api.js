@@ -15,7 +15,11 @@ function getApiPath(event) {
 
 exports.handler = async (event, context) => {
   if (process.env.NETLIFY === 'true') {
-    connectLambda(event);
+    try {
+      connectLambda(event);
+    } catch (err) {
+      console.warn('connectLambda warning:', err.message);
+    }
   }
 
   const path = getApiPath(event);

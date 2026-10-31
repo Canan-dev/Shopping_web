@@ -188,7 +188,7 @@
     "id": "prod_7",
     "name": "Sony PlayStation 5 Slim Console",
     "category": "Gaming",
-    "price": 499,
+    "price": 2500000,
     "originalPrice": 549,
     "stock": 9,
     "rating": 4.9,
@@ -202,6 +202,7 @@
       "Up to 120fps with 4K output & Ray Tracing",
       "Includes DualSense wireless controller"
     ],
-    "createdAt": "2026-10-21T16:10:00.000Z"
+    "createdAt": "2026-10-21T16:10:00.000Z",
+    "updatedAt": "2026-10-25T13:33:56.055Z"
   }
 ]

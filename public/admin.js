@@ -58,7 +58,7 @@ async function verifyAdminAuth() {
 
 async function handleOwnerLogin(e) {
   e.preventDefault();
-  const password = document.getElementById('ownerPasswordInput').value;
+  const password = document.getElementById('ownerPasswordInput').value.trim();
   const loginBtn = document.getElementById('loginBtn');
 
   loginBtn.disabled = true;

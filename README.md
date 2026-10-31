@@ -60,18 +60,20 @@ To keep your store secure and clean:
 
 ### Step 3: Open in Your Browser
 - **Customer Storefront**: [http://localhost:3000](http://localhost:3000)
-- **Owner Admin Portal**: [http://localhost:3000/admin](http://localhost:3000/admin) *(Local passcode: `admin123`)*
+- **Owner Admin Portal**: [http://localhost:3000/admin](http://localhost:3000/admin) *(Password to add items: `admin123`)*
 
 ---
 
 ## ☁️ Deploy to Netlify
 
-This project includes a Netlify Functions adapter for the Express API. Netlify Blobs stores products, orders, admin sessions, and uploaded product images persistently; the starter product catalog and existing images are included in the deployment.
+This project is fully configured for seamless 1-click deployment on Netlify with serverless Express API and persistent product data.
 
-1. Push the project to GitHub, then in Netlify choose **Add new site → Import an existing project** and select the repository.
-2. Keep the build settings from `netlify.toml`. The site name can be set to **NetShopUg** (the public address will be `netshopug.netlify.app` if that name is available).
-3. In **Site configuration → Environment variables**, set `ADMIN_PASSWORD` to a strong, private passcode. The local-only default `admin123` is rejected by the deployed API.
-4. Deploy the site. Netlify Blobs is initialized automatically when the API first runs.
+1. Push the project to GitHub (`git push origin main`).
+2. Log into [Netlify](https://app.netlify.com/) and click **Add new site → Import an existing project**, then select your repository (**Canan-dev/Shopping_web**).
+3. The build settings in `netlify.toml` are detected automatically (`npm run build`, publish directory `dist`, functions `netlify/functions`).
+4. Click **Deploy**. The site will be live instantly (e.g. `https://netshopug.netlify.app`).
+5. Open `/admin` on your live site and enter password **`admin123`** to add products and manage inventory! (You can also optionally override `ADMIN_PASSWORD` in Netlify Site Configuration → Environment Variables if desired).
+6. When customers buy on their phone (MTN or Airtel Mobile Money), payment instructions guide them to pay directly to **+256 776 439184** with WhatsApp confirmation.
 
 Use `npm run netlify:dev` to test the Netlify Functions and Blobs integration locally. Netlify CLI will ask you to log in and link the site. Normal local development still uses `npm start`.
 

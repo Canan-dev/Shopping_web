@@ -62,9 +62,10 @@
         "name": "NetShopUg",
         "url": "__SITE_URL__/",
         "logo": "__SITE_URL__/favicon-192x192.png",
-        "description": "Authorized retailer for flagship smartphones, pro laptops, studio headphones, and gaming gear.",
-        "currenciesAccepted": "USD",
-        "paymentAccepted": "Credit Card, Cash on Delivery"
+        "description": "Authorized retailer for flagship smartphones, pro laptops, studio headphones, and gaming gear in Uganda.",
+        "currenciesAccepted": "UGX, USD",
+        "paymentAccepted": "MTN Mobile Money, Airtel Money, Cash on Delivery, Credit Card",
+        "telephone": "+256 776 439184"
       }
     ]
   }
@@ -530,19 +531,10 @@
             
             <div class="payment-options">
               <label class="payment-card selected">
-                <input type="radio" name="paymentMethod" value="Credit / Debit Card" checked onchange="handlePaymentMethodChange(this.value)">
+                <input type="radio" name="paymentMethod" value="Mobile Money (MTN & Airtel) - +256 776 439184" checked onchange="handlePaymentMethodChange(this.value)">
                 <div class="pay-info">
-                  <strong>Credit / Debit Card</strong>
-                  <span>Instant secure processing</span>
-                </div>
-                <i data-lucide="credit-card"></i>
-              </label>
-
-              <label class="payment-card">
-                <input type="radio" name="paymentMethod" value="Mobile Money - MTN (+256 776 439184)" onchange="handlePaymentMethodChange(this.value)">
-                <div class="pay-info">
-                  <strong>Mobile Money (MTN)</strong>
-                  <span>Send payment to: <strong>+256 776 439184</strong></span>
+                  <strong>📱 Pay on Phone (MTN / Airtel Money)</strong>
+                  <span>Send money directly to: <strong style="color: #38bdf8;">+256 776 439184</strong></span>
                 </div>
                 <i data-lucide="smartphone"></i>
               </label>
@@ -557,34 +549,49 @@
               </label>
 
               <label class="payment-card">
-                <input type="radio" name="paymentMethod" value="Mobile Pay / Apple Pay" onchange="handlePaymentMethodChange(this.value)">
+                <input type="radio" name="paymentMethod" value="Credit / Debit Card" onchange="handlePaymentMethodChange(this.value)">
                 <div class="pay-info">
-                  <strong>Apple Pay / Mobile Pay</strong>
-                  <span>One-tap payment</span>
+                  <strong>Credit / Debit Card</strong>
+                  <span>Instant card processing</span>
                 </div>
-                <i data-lucide="smartphone"></i>
+                <i data-lucide="credit-card"></i>
+              </label>
+
+              <label class="payment-card">
+                <input type="radio" name="paymentMethod" value="Phone Order / WhatsApp Support" onchange="handlePaymentMethodChange(this.value)">
+                <div class="pay-info">
+                  <strong>WhatsApp / Phone Support</strong>
+                  <span>Order assistance: <strong>+256 776 439184</strong></span>
+                </div>
+                <i data-lucide="phone-call"></i>
               </label>
             </div>
 
-            <!-- MTN Mobile Money Instructions (shown when MTN is selected) -->
-            <div id="mtnMoneyInstructions" style="display:none; margin-top: 1rem; padding: 1rem 1.1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); font-size: 0.88rem;">
-              <strong style="color: #10b981; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem;">
-                📱 MTN Mobile Money Payment Instructions
+            <!-- Phone Payment Instructions (shown for Mobile Money / Phone) -->
+            <div id="mtnMoneyInstructions" style="display:block; margin-top: 1rem; padding: 1.1rem; background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(16, 185, 129, 0.45); border-radius: var(--radius-md); font-size: 0.9rem;">
+              <strong style="color: #10b981; display: flex; align-items: center; gap: 0.45rem; font-size: 0.98rem; margin-bottom: 0.6rem;">
+                <i data-lucide="smartphone"></i> Phone Payment Instructions (MTN & Airtel Money)
               </strong>
-              <ol style="padding-left: 1.2rem; line-height: 2; color: var(--text-muted);">
-                <li>Dial <strong style="color:#fff;">*165#</strong> on your MTN line</li>
-                <li>Select <strong style="color:#fff;">Send Money</strong></li>
-                <li>Enter number: <strong style="color:#38bdf8;">+256 776 439184</strong></li>
-                <li>Enter the <strong style="color:#fff;">exact order total</strong> as the amount</li>
-                <li>Use your order ID as the <strong style="color:#fff;">reference/reason</strong></li>
-                <li>Confirm with your PIN</li>
+              
+              <div style="background: rgba(15, 23, 42, 0.7); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.3);">
+                <span style="color: var(--text-dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; display:block;">Money destination number:</span>
+                <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; letter-spacing: 0.5px; margin: 3px 0;">+256 776 439184</div>
+                <small style="color: var(--text-muted);">Recipient Name: <strong>Canan / NetShopUg</strong></small>
+              </div>
+
+              <ol style="padding-left: 1.2rem; line-height: 1.9; color: var(--text-muted); margin-bottom: 0.75rem;">
+                <li><strong>MTN Line:</strong> Dial <strong style="color:#fff;">*165#</strong> &gt; Select <strong>Send Money</strong> &gt; Enter <strong style="color:#38bdf8;">+256 776 439184</strong></li>
+                <li><strong>Airtel Line:</strong> Dial <strong style="color:#fff;">*185#</strong> &gt; Select <strong>Send Money</strong> &gt; Enter <strong style="color:#38bdf8;">+256 776 439184</strong></li>
+                <li>Enter the <strong>exact order total in UGX</strong></li>
+                <li>Enter your Name / Order ID as Reason, then confirm with your PIN</li>
               </ol>
-              <p style="margin-top: 0.5rem; color: var(--text-dim); font-size: 0.8rem;">
-                ⚠️ Your order will be confirmed after payment is verified. Send payment screenshot or inquiry to WhatsApp: 
-                <a href="https://wa.me/256776439184?text=Hello%20NetShopUg%2C%20here%20is%20my%20MTN%20Mobile%20Money%20payment%20proof." target="_blank" rel="noopener noreferrer" style="color: #25d366; font-weight: 600; text-decoration: underline;">
+
+              <div style="padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.82rem; color: var(--text-dim);">
+                <span>Need help or sending receipt screenshot? Contact WhatsApp: </span>
+                <a href="https://wa.me/256776439184?text=Hello%20NetShopUg%2C%20here%20is%20my%20phone%20payment%20confirmation." target="_blank" rel="noopener noreferrer" style="color: #25d366; font-weight: 700; text-decoration: underline;">
                   +256 776 439184
                 </a>
-              </p>
+              </div>
             </div>
 
             <div class="order-summary-box">

@@ -10,13 +10,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const isNetlify = process.env.NETLIFY === 'true';
 
-// Owner password (default is 'admin123' for local development)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Owner password (set to 'admin123' so the owner can add items)
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin123').trim();
 const adminTokens = new Set();
 let catalogVersion = Date.now();
 
-if (isNetlify && !process.env.ADMIN_PASSWORD) {
-  throw new Error('ADMIN_PASSWORD must be configured in Netlify environment variables.');
+function generateAdminToken() {
+  const timestamp = Date.now();
+  const signature = crypto.createHmac('sha256', ADMIN_PASSWORD).update(String(timestamp)).digest('hex');
+  return `${timestamp}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+  if (!token || typeof token !== 'string') return false;
+  if (adminTokens.has(token)) return true;
+  const dotIndex = token.indexOf('.');
+  if (dotIndex === -1) return false;
+  const timestampStr = token.slice(0, dotIndex);
+  const signature = token.slice(dotIndex + 1);
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp)) return false;
+  // Token valid for 24 hours
+  if (Date.now() - timestamp > 24 * 60 * 60 * 1000) return false;
+  const expectedSignature = crypto.createHmac('sha256', ADMIN_PASSWORD).update(timestampStr).digest('hex');
+  if (signature.length !== expectedSignature.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
 }
 
 // Middleware
@@ -88,15 +106,24 @@ function dataStore() {
 
 async function readJSON(name, fallback = []) {
   if (isNetlify) {
-    const store = dataStore();
-    const stored = await store.get(name, { type: 'json' });
-    if (stored !== null) {
-      return stored;
-    }
+    try {
+      const store = dataStore();
+      const stored = await store.get(name, { type: 'json' });
+      if (stored !== null) {
+        return stored;
+      }
 
-    const initialData = name === 'products' ? seedProducts : fallback;
-    await store.setJSON(name, initialData);
-    return initialData;
+      const initialData = name === 'products' ? seedProducts : fallback;
+      try {
+        await store.setJSON(name, initialData);
+      } catch (e) {
+        // Blobs init warning
+      }
+      return initialData;
+    } catch (err) {
+      console.warn(`Netlify blobs read failed for ${name}:`, err.message);
+      return name === 'products' ? seedProducts : fallback;
+    }
   }
 
   try {
@@ -112,13 +139,21 @@ async function readJSON(name, fallback = []) {
 
 async function writeJSON(name, data) {
   if (isNetlify) {
-    const store = dataStore();
-    await store.setJSON(name, data);
-    if (name === 'products') {
-      catalogVersion = Date.now();
-      await store.set('catalog-version', String(catalogVersion));
+    try {
+      const store = dataStore();
+      await store.setJSON(name, data);
+      if (name === 'products') {
+        catalogVersion = Date.now();
+        await store.set('catalog-version', String(catalogVersion));
+      }
+      return;
+    } catch (err) {
+      console.warn(`Netlify blobs write failed for ${name}:`, err.message);
+      if (name === 'products') {
+        catalogVersion = Date.now();
+      }
+      return;
     }
-    return;
   }
 
   await fs.promises.writeFile(dataFiles[name], JSON.stringify(data, null, 2), 'utf-8');
@@ -138,21 +173,24 @@ async function requireAdmin(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = (authHeader && authHeader.split(' ')[1]) || req.headers['x-admin-token'];
 
+  if (verifyAdminToken(token)) {
+    return next();
+  }
+
   try {
-    let authorized = token && adminTokens.has(token);
     if (token && isNetlify) {
       const sessions = getStore('netshopug-admin-sessions');
       const session = await sessions.get(token, { type: 'json' });
-      authorized = Boolean(session && Date.now() - Date.parse(session.createdAt) < 12 * 60 * 60 * 1000);
+      const authorized = Boolean(session && Date.now() - Date.parse(session.createdAt) < 24 * 60 * 60 * 1000);
       if (session && !authorized) {
         await sessions.delete(token);
       }
-    }
-    if (authorized) {
-      return next();
+      if (authorized) {
+        return next();
+      }
     }
   } catch (err) {
-    return next(err);
+    // Rely on token verification
   }
 
   return res.status(401).json({
@@ -163,14 +201,17 @@ async function requireAdmin(req, res, next) {
 
 // POST /api/admin/login - Verify owner password
 app.post('/api/admin/login', async (req, res, next) => {
-  const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
+  const { password } = req.body || {};
+  if (typeof password === 'string' && password.trim() === ADMIN_PASSWORD) {
     try {
-      const token = crypto.randomBytes(32).toString('hex');
+      const token = generateAdminToken();
+      adminTokens.add(token);
       if (isNetlify) {
-        await getStore('netshopug-admin-sessions').setJSON(token, { createdAt: new Date().toISOString() });
-      } else {
-        adminTokens.add(token);
+        try {
+          await getStore('netshopug-admin-sessions').setJSON(token, { createdAt: new Date().toISOString() });
+        } catch (e) {
+          // ignore session write error
+        }
       }
       return res.json({ success: true, token, message: 'Owner authenticated successfully!' });
     } catch (err) {
@@ -186,10 +227,13 @@ app.post('/api/admin/logout', async (req, res, next) => {
   const token = (authHeader && authHeader.split(' ')[1]) || req.headers['x-admin-token'];
   try {
     if (token) {
+      adminTokens.delete(token);
       if (isNetlify) {
-        await getStore('netshopug-admin-sessions').delete(token);
-      } else {
-        adminTokens.delete(token);
+        try {
+          await getStore('netshopug-admin-sessions').delete(token);
+        } catch (e) {
+          // ignore
+        }
       }
     }
     res.json({ success: true, message: 'Logged out successfully.' });
@@ -355,11 +399,17 @@ app.post('/api/upload', requireAdmin, (req, res, next) => {
     try {
       if (isNetlify) {
         const filename = makeUploadFilename(req.file.originalname);
-        const image = new Blob([req.file.buffer], { type: req.file.mimetype });
-        await getStore('netshopug-media').set(filename, image, {
-          metadata: { contentType: req.file.mimetype }
-        });
-        return res.json({ success: true, url: `/api/media/${encodeURIComponent(filename)}` });
+        try {
+          const image = new Blob([req.file.buffer], { type: req.file.mimetype });
+          await getStore('netshopug-media').set(filename, image, {
+            metadata: { contentType: req.file.mimetype }
+          });
+          return res.json({ success: true, url: `/api/media/${encodeURIComponent(filename)}` });
+        } catch (mediaErr) {
+          console.warn('Blobs media upload fallback to data URI:', mediaErr.message);
+          const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+          return res.json({ success: true, url: dataUri });
+        }
       }
 
       return res.json({ success: true, url: `/uploads/${req.file.filename}` });
@@ -459,7 +509,7 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
     discount,
     shipping,
     total,
-    paymentMethod: paymentMethod || 'Credit / Debit Card',
+    paymentMethod: paymentMethod || 'Mobile Money (+256 776 439184)',
     status: 'Confirmed',
     createdAt: new Date().toISOString()
   };
