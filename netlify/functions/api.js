@@ -1,5 +1,9 @@
 const serverless = require('serverless-http');
 const { connectLambda } = require('@netlify/blobs');
+
+// Ensure NETLIFY runtime flag is set before loading the app
+process.env.NETLIFY = 'true';
+
 const app = require('../../server');
 
 const expressHandler = serverless(app);
@@ -14,12 +18,10 @@ function getApiPath(event) {
 }
 
 exports.handler = async (event, context) => {
-  if (process.env.NETLIFY === 'true') {
-    try {
-      connectLambda(event);
-    } catch (err) {
-      console.warn('connectLambda warning:', err.message);
-    }
+  try {
+    connectLambda(event);
+  } catch (err) {
+    console.warn('connectLambda warning:', err.message);
   }
 
   const path = getApiPath(event);

@@ -8,7 +8,10 @@ const { getStore } = require('@netlify/blobs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const isNetlify = process.env.NETLIFY === 'true';
+const isNetlify =
+  process.env.NETLIFY === 'true' ||
+  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+  Boolean(process.env.LAMBDA_TASK_ROOT);
 
 // Owner password (set to 'admin123' so the owner can add items)
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin123').trim();
@@ -45,9 +48,13 @@ app.use(express.urlencoded({ extended: true }));
 // Ensure data & upload directories exist
 const dataDir = path.join(__dirname, 'data');
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!isNetlify) {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!isNetlify) {
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  // Ignore in serverless or read-only execution environments
 }
 
 // Serve static frontend and uploads
@@ -98,7 +105,16 @@ const dataFiles = {
   products: path.join(dataDir, 'products.json'),
   orders: path.join(dataDir, 'orders.json')
 };
-const seedProducts = require('./data/products.json');
+let seedProducts = [];
+try {
+  seedProducts = require('./data/products.json');
+} catch (e) {
+  try {
+    seedProducts = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'products.json'), 'utf8'));
+  } catch (err) {
+    seedProducts = [];
+  }
+}
 
 function dataStore() {
   return getStore('netshopug-data');
