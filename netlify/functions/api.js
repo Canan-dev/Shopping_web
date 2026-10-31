@@ -24,11 +24,21 @@ exports.handler = async (event, context) => {
     console.warn('connectLambda warning:', err.message);
   }
 
-  const path = getApiPath(event);
+  let normalizedEvent = { ...event };
+  if (normalizedEvent.isBase64Encoded && typeof normalizedEvent.body === 'string') {
+    try {
+      normalizedEvent.body = Buffer.from(normalizedEvent.body, 'base64').toString('utf8');
+      normalizedEvent.isBase64Encoded = false;
+    } catch (e) {
+      console.warn('Failed to decode base64 body:', e.message);
+    }
+  }
+
+  const path = getApiPath(normalizedEvent);
   const rawUrl = new URL(
-    event.rawUrl || `https://${event.headers.host || 'localhost'}${event.path || '/'}`
+    normalizedEvent.rawUrl || `https://${normalizedEvent.headers?.host || 'localhost'}${normalizedEvent.path || '/'}`
   );
   rawUrl.pathname = path;
 
-  return expressHandler({ ...event, path, rawUrl: rawUrl.toString() }, context);
+  return expressHandler({ ...normalizedEvent, path, rawUrl: rawUrl.toString() }, context);
 };

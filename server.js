@@ -217,9 +217,17 @@ async function requireAdmin(req, res, next) {
 
 // POST /api/admin/login - Verify owner password
 app.post('/api/admin/login', async (req, res, next) => {
-  const { password } = req.body || {};
-  if (typeof password === 'string' && password.trim() === ADMIN_PASSWORD) {
-    try {
+  try {
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+    const password = body?.password || req.query?.password;
+    if (typeof password === 'string' && password.trim() === ADMIN_PASSWORD) {
       const token = generateAdminToken();
       adminTokens.add(token);
       if (isNetlify) {
@@ -230,11 +238,11 @@ app.post('/api/admin/login', async (req, res, next) => {
         }
       }
       return res.json({ success: true, token, message: 'Owner authenticated successfully!' });
-    } catch (err) {
-      return next(err);
     }
+    return res.status(401).json({ success: false, message: 'Incorrect owner password. Access denied.' });
+  } catch (err) {
+    return next(err);
   }
-  return res.status(401).json({ success: false, message: 'Incorrect owner password. Access denied.' });
 });
 
 // POST /api/admin/logout - Invalidate owner token
@@ -607,7 +615,7 @@ app.use((err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
   }
-  res.status(500).json({ success: false, message: 'An unexpected server error occurred.' });
+  res.status(500).json({ success: false, message: err?.message || 'An unexpected server error occurred.', stack: err?.stack });
 });
 
 if (require.main === module) {
